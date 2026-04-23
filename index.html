@@ -122,28 +122,6 @@ nav {
   max-width: 1400px;
 }
 
-.hero-eyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: rgba(23,123,214,0.1);
-  border: 1px solid rgba(23,123,214,0.3);
-  border-radius: 99px;
-  padding: 0.3rem 0.9rem;
-  font-family: 'DM Mono', monospace;
-  font-size: 1rem;
-  letter-spacing: 0.15em;
-  color: var(--blue);
-  margin-bottom: 1.5rem;
-}
-.hero-eyebrow::before {
-  content: '';
-  width: 6px; height: 6px;
-  border-radius: 50%;
-  background: var(--cyan);
-  animation: pulse 2s infinite;
-}
-
 @keyframes pulse {
   0%,100% { opacity: 1; }
   50% { opacity: 0.3; }
@@ -825,11 +803,25 @@ footer span { color: var(--blue); }
 
 /* ── RESPONSIVE ─────────────────────────────────────────── */
 @media (max-width: 768px) {
-  .hero-grid { grid-template-columns: 1fr; }
-  .hero-visual { display: none; }
-  .training-loop { grid-template-columns: 1fr; }
-  .arch-tooltip { display: none !important; }
-  .arch-repeat-badge { right: -70px; font-size: 1rem; }
+    .hero-grid { grid-template-columns: 1fr; }
+    .hero-visual { display: none; }
+    .training-loop { grid-template-columns: 1fr; }
+    .arch-tooltip { display: none !important; }
+    .arch-repeat-badge { right: -70px; font-size: 1rem; }
+    .token-btn {
+        padding: 0.65rem 0.9rem;
+        font-size: 0;        /* hides the text */
+    }
+    .token-btn::after {
+        content: '→';
+        font-size: 1.1rem;
+    }
+    .token-demo {
+        padding: 1.2rem;
+    }
+    #tok-ann-wrap {
+        display: none !important;
+    }
 }
 </style>
 </head>
@@ -855,7 +847,6 @@ footer span { color: var(--blue); }
 
   <div class="hero-grid">
     <div>
-      <div class="hero-eyebrow reveal">AN INTERACTIVE EXPLAINER</div>
       <h1 class="reveal reveal-delay-1">How <em>LLMs</em><br>actually work</h1>
       <p class="hero-subtitle reveal reveal-delay-2">From raw text to generated language - a visual walkthrough of every step inside a large language model.</p>
       <a href="#tokenization" class="hero-cta reveal reveal-delay-3">
