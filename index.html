@@ -93,7 +93,7 @@ nav {
   backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--border);
 }
-.nav-logo { font-family: 'DM Serif Display', serif; font-size: 2rem; color: var(--text); }
+.nav-logo { font-family: 'DM Serif Display', serif; font-size: 2rem; color: var(--text); flex-shrink: 0; }
 .nav-links { display: flex; gap: 2rem; list-style: none; }
 .nav-links a { color: var(--muted); text-decoration: none; font-size: 1rem; font-family: 'DM Mono', monospace; transition: color 0.2s; }
 .nav-links a:hover { color: var(--blue); }
@@ -104,6 +104,68 @@ nav {
   transition: background 0.3s, box-shadow 0.3s;
 }
 .nav-dot.active { background: var(--blue); box-shadow: 0 0 8px var(--blue); }
+
+/* ── HAMBURGER (mobile only) ────────────────────────────── */
+.nav-hamburger {
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  z-index: 102;
+}
+.nav-hamburger span {
+  display: block;
+  width: 24px;
+  height: 2px;
+  background: var(--text);
+  border-radius: 2px;
+  transition: transform 0.3s cubic-bezier(.22,1,.36,1), opacity 0.3s;
+  transform-origin: center;
+}
+.nav-hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.nav-hamburger.open span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+.nav-hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+/* Mobile dropdown */
+.nav-dropdown {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 101;
+  background: rgba(6,6,14,0.97);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+  padding: 5rem 2rem 2rem;
+  transform: translateY(-100%);
+  transition: transform 0.4s cubic-bezier(.22,1,.36,1), opacity 0.3s;
+  opacity: 0;
+}
+.nav-dropdown.open {
+  transform: translateY(0);
+  opacity: 1;
+}
+.nav-dropdown ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.nav-dropdown ul li a {
+  display: block;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--border);
+  color: var(--muted);
+  text-decoration: none;
+  font-family: 'DM Mono', monospace;
+  font-size: 1.1rem;
+  letter-spacing: 0.1em;
+  transition: color 0.2s;
+}
+.nav-dropdown ul li:last-child a { border-bottom: none; }
+.nav-dropdown ul li a:hover { color: var(--blue); }
 
 /* ── HERO ───────────────────────────────────────────────── */
 #hero {
@@ -330,6 +392,7 @@ nav {
   position: relative;
   height: 340px;
   max-width: 700px;
+  width: 100%;
 }
 
 .embed-canvas { width: 100%; height: 100%; }
@@ -426,17 +489,23 @@ nav {
 
 /* ── ARCH OVERLAY ───────────────────────────────────────── */
 .arch-overlay {
-  display: none;
+  display: flex;
   position: fixed;
   inset: 0;
   z-index: 200;
-  background: rgba(25, 25, 38, 0.85);
-  backdrop-filter: blur(2px);
+  background: rgba(25, 25, 38, 0);
+  backdrop-filter: blur(0px);
   align-items: center;
   justify-content: center;
   padding: 2rem;
+  pointer-events: none;
+  transition: background 0.3s ease, backdrop-filter 0.3s ease;
 }
-.arch-overlay.open { display: flex; }
+.arch-overlay.open {
+  background: rgba(25, 25, 38, 0.85);
+  backdrop-filter: blur(4px);
+  pointer-events: all;
+}
 .arch-overlay-card {
   background: var(--surface2);
   border: 1px solid var(--border);
@@ -445,6 +514,13 @@ nav {
   max-width: 480px;
   width: 100%;
   position: relative;
+  transform: scale(0.88) translateY(16px);
+  opacity: 0;
+  transition: transform 0.35s cubic-bezier(.34,1.56,.64,1), opacity 0.25s ease;
+}
+.arch-overlay.open .arch-overlay-card {
+  transform: scale(1) translateY(0);
+  opacity: 1;
 }
 .arch-overlay-num {
   font-family: 'DM Mono', monospace;
@@ -482,17 +558,40 @@ nav {
 }
 .arch-overlay-close:hover { border-color: var(--blue); color: var(--text); }
 
-.arch-tap-hint {
+/* ── DOG EAR ─────────────────────────────────────────────── */
+.arch-layer { overflow: hidden; }
+
+.dog-ear {
   position: absolute;
-  top: 0.6rem;
-  right: 0.8rem;
-  font-family: 'DM Mono', monospace;
-  font-size: 0.7rem;
-  color: var(--yellow);
-  opacity: 0.6;
-  pointer-events: none;
+  top: 0;
+  right: 0;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0 36px 36px 0;
+  border-color: transparent rgba(214,210,23,0.55) transparent transparent;
+  transition: border-color 0.2s;
 }
-.arch-tap-hint::after { content: 'click me'; }
+.arch-layer:hover .dog-ear {
+  border-color: transparent rgba(214,210,23,0.9) transparent transparent;
+}
+
+/* Label sits just below and to the left of the ear, on the first card only */
+.dog-ear-hint {
+  position: absolute;
+  top: 38px;
+  right: 8px;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  color: rgba(214,210,23,0.7);
+  pointer-events: none;
+  white-space: nowrap;
+  text-align: right;
+  line-height: 1.3;
+}
+
+/* External hint above diagram — removed, using on-card label instead */
+.arch-tap-hint-external { display: none; }
 
 
 /* ── SECTION 4: ATTENTION ───────────────────────────────── */
@@ -736,7 +835,7 @@ nav {
   margin-bottom: 0.8rem;
   letter-spacing: 0.1em;
 }
-.loss-svg { width: 100%; height: 120px; display: block; }
+.loss-svg { width: 100%; height: 130px; display: block; overflow: visible; }
 
 /* ── SECTION 7: QKV MATH ────────────────────────────────── */
 #qkv { background: var(--surface); }
@@ -864,11 +963,11 @@ footer span { color: var(--blue); }
 @media (max-width: 768px) {
     .hero-grid { grid-template-columns: 1fr; }
     .hero-visual { display: none; }
-    .training-loop { grid-template-columns: 1fr; }    
+    .training-loop { grid-template-columns: 1fr; }
     .arch-repeat-badge { right: -70px; font-size: 1rem; }
     .token-btn {
         padding: 0.65rem 0.9rem;
-        font-size: 0;        /* hides the text */
+        font-size: 0;
     }
     .token-btn::after {
         content: '→';
@@ -880,11 +979,15 @@ footer span { color: var(--blue); }
     #tok-ann-wrap {
         display: none !important;
     }
-    .arch-tap-hint::after { content: 'tap me'; }
-        .attn-interp {
-        
+    /* arch-layer tap hint handled by dog-ear now */
+    .attn-interp {
         height: 132px;
     }
+
+    /* Hide desktop nav links, show hamburger */
+    .nav-links { display: none; }
+    .nav-hamburger { display: flex; }
+    .nav-dropdown { display: block; }
 }
 </style>
 </head>
@@ -901,7 +1004,26 @@ footer span { color: var(--blue); }
     <li><a href="#generation">generate</a></li>
     <li><a href="#training">train</a></li>
   </ul>
+  <button class="nav-hamburger" id="navHamburger" aria-label="Toggle menu">
+    <span></span>
+    <span></span>
+    <span></span>
+  </button>
 </nav>
+
+<!-- Mobile dropdown -->
+<div class="nav-dropdown" id="navDropdown">
+  <ul>
+    <li><a href="#tokenization" class="nav-dropdown-link">01 — tokens</a></li>
+    <li><a href="#embedding" class="nav-dropdown-link">02 — embed</a></li>
+    <li><a href="#architecture" class="nav-dropdown-link">03 — arch</a></li>
+    <li><a href="#attention" class="nav-dropdown-link">04 — attention</a></li>
+    <li><a href="#generation" class="nav-dropdown-link">05 — generate</a></li>
+    <li><a href="#training" class="nav-dropdown-link">06 — train</a></li>
+    <li><a href="#qkv" class="nav-dropdown-link">07 — Q, K, V</a></li>
+    <li><a href="#rlhf" class="nav-dropdown-link">08 — RLHF</a></li>
+  </ul>
+</div>
 
 <!-- ── HERO ───────────────────────────────────────────── -->
 <section id="hero">
@@ -910,7 +1032,7 @@ footer span { color: var(--blue); }
 
   <div class="hero-grid">
     <div>
-      <h1 class="reveal reveal-delay-1">How <em>LLMs</em><br>actually work</h1>
+      <h1 class="reveal reveal-delay-1">Inside <em>LLMs</em></h1>
       <p class="hero-subtitle reveal reveal-delay-2">From raw text to generated language - a visual walkthrough of every step inside a large language model.</p>
       <a href="#tokenization" class="hero-cta reveal reveal-delay-3">
         Start exploring
@@ -983,32 +1105,33 @@ footer span { color: var(--blue); }
 
   <div class="arch-diagram reveal reveal-delay-3">
   <div class="arch-layer green" onclick="openArchOverlay(0)">
-    <span class="arch-tap-hint"></span>
+    <div class="dog-ear"></div>
+    <div class="dog-ear-hint" id="dogEarHint">tap for<br>more</div>
     <div class="arch-layer-title">Input tokens</div>
     <div class="arch-layer-sub">Raw text → token IDs</div>
   </div>
   <div class="arch-arrow"></div>
   <div class="arch-layer cyan" onclick="openArchOverlay(1)">
-    <span class="arch-tap-hint"></span>
+    <div class="dog-ear"></div>
     <div class="arch-layer-title">Embedding + positional encoding</div>
     <div class="arch-layer-sub">IDs → vectors with position info</div>
   </div>
   <div class="arch-arrow"></div>
   <div class="arch-layer blue" onclick="openArchOverlay(2)">
-    <span class="arch-tap-hint"></span>
+    <div class="dog-ear"></div>
     <div class="arch-layer-title">Transformer block x N</div>
     <div class="arch-layer-sub">Self-attention + feed-forward + layer norm</div>
     <div class="arch-repeat-badge">x 32 to 128 layers</div>
   </div>
   <div class="arch-arrow"></div>
   <div class="arch-layer indigo" onclick="openArchOverlay(3)">
-    <span class="arch-tap-hint"></span>
+    <div class="dog-ear"></div>
     <div class="arch-layer-title">Output projection</div>
     <div class="arch-layer-sub">Full context → one score per word</div>
   </div>
   <div class="arch-arrow"></div>
   <div class="arch-layer orange" onclick="openArchOverlay(4)">
-    <span class="arch-tap-hint"></span>
+    <div class="dog-ear"></div>
     <div class="arch-layer-title">Softmax → sample</div>
     <div class="arch-layer-sub">Scores → probabilities → next token</div>
   </div>
@@ -1190,6 +1313,43 @@ footer span { color: var(--blue); }
 </footer>
 
 <script>
+
+/* ── DOG EAR: click vs tap ──────────────────────────────── */
+(function() {
+  const hint = document.getElementById('dogEarHint');
+  if (hint && window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+    hint.innerHTML = 'click for<br>more';
+  }
+})();
+
+/* ── MOBILE NAV ─────────────────────────────────────────── */
+const hamburger = document.getElementById('navHamburger');
+const dropdown = document.getElementById('navDropdown');
+
+hamburger.addEventListener('click', (e) => {
+  e.stopPropagation();
+  const isOpen = dropdown.classList.contains('open');
+  dropdown.classList.toggle('open');
+  hamburger.classList.toggle('open');
+  document.body.style.overflow = isOpen ? '' : 'hidden';
+});
+
+// Close when tapping outside the dropdown
+document.addEventListener('click', (e) => {
+  if (dropdown.classList.contains('open') && !dropdown.contains(e.target) && e.target !== hamburger) {
+    dropdown.classList.remove('open');
+    hamburger.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+});
+
+document.querySelectorAll('.nav-dropdown-link').forEach(link => {
+  link.addEventListener('click', () => {
+    dropdown.classList.remove('open');
+    hamburger.classList.remove('open');
+    document.body.style.overflow = '';
+  });
+});
 
 /* ── ARCH OVERLAY ───────────────────────────────────────── */
 const archData = [
@@ -1520,22 +1680,40 @@ setInterval(animateTraining, 1200);
 /* ── LOSS CURVE ─────────────────────────────────────────── */
 function drawLoss() {
   const svg = document.getElementById('lossSvg');
-  const W = 600, H = 120, padX = 30, padY = 16;
+  const W = 600, H = 130, padX = 52, padY = 20, padBottom = 32;
+  const chartW = W - padX - 16;
+  const chartH = H - padY - padBottom;
   const pts = [];
   for (let i = 0; i <= 60; i++) {
-    const x = padX + (i/60) * (W - padX*2);
+    const x = padX + (i/60) * chartW;
     const noise = (Math.random()-0.5)*4;
     const val = 3.8 * Math.exp(-i/14) + 0.38 + noise * Math.exp(-i/20);
-    const y = padY + (1 - (val/4)) * (H - padY*2);
-    pts.push([x, Math.max(padY, Math.min(H-padY, y))]);
+    const y = padY + (1 - (val/4)) * chartH;
+    pts.push([x, Math.max(padY, Math.min(padY + chartH, y))]);
   }
   const d = pts.map((p,i) => (i===0?'M':'L') + p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ');
+
+  const axisColor = 'rgba(112,112,160,0.5)';
+  const labelColor = 'rgba(180,180,210,0.9)';
+  const fontSize = 13;
+
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
   svg.innerHTML = `
-    <path d="${d}" fill="none" stroke="#177bd6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-    <text x="${padX}" y="${H-4}" font-family="DM Mono,monospace" font-size="10" fill="rgba(112,112,160,0.7)">start</text>
-    <text x="${W-padX}" y="${H-4}" text-anchor="end" font-family="DM Mono,monospace" font-size="10" fill="rgba(112,112,160,0.7)">trained</text>
-    <text x="${padX-4}" y="${padY+4}" text-anchor="end" font-family="DM Mono,monospace" font-size="10" fill="rgba(112,112,160,0.7)">high</text>
-    <text x="${padX-4}" y="${H-padY}" text-anchor="end" font-family="DM Mono,monospace" font-size="10" fill="rgba(112,112,160,0.7)">low</text>
+    <!-- Y axis -->
+    <line x1="${padX}" y1="${padY}" x2="${padX}" y2="${padY + chartH}" stroke="${axisColor}" stroke-width="1"/>
+    <!-- X axis -->
+    <line x1="${padX}" y1="${padY + chartH}" x2="${padX + chartW}" y2="${padY + chartH}" stroke="${axisColor}" stroke-width="1"/>
+    <!-- Subtle grid lines -->
+    <line x1="${padX}" y1="${padY + chartH * 0.33}" x2="${padX + chartW}" y2="${padY + chartH * 0.33}" stroke="${axisColor}" stroke-width="0.5" stroke-dasharray="3,4"/>
+    <line x1="${padX}" y1="${padY + chartH * 0.66}" x2="${padX + chartW}" y2="${padY + chartH * 0.66}" stroke="${axisColor}" stroke-width="0.5" stroke-dasharray="3,4"/>
+    <!-- Loss curve -->
+    <path d="${d}" fill="none" stroke="#177bd6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <!-- X labels -->
+    <text x="${padX}" y="${padY + chartH + 20}" text-anchor="middle" font-family="DM Mono,monospace" font-size="${fontSize}" fill="${labelColor}">start</text>
+    <text x="${padX + chartW}" y="${padY + chartH + 20}" text-anchor="middle" font-family="DM Mono,monospace" font-size="${fontSize}" fill="${labelColor}">trained</text>
+    <!-- Y labels -->
+    <text x="${padX - 8}" y="${padY + 5}" text-anchor="end" font-family="DM Mono,monospace" font-size="${fontSize}" fill="${labelColor}">high</text>
+    <text x="${padX - 8}" y="${padY + chartH}" text-anchor="end" dominant-baseline="middle" font-family="DM Mono,monospace" font-size="${fontSize}" fill="${labelColor}">low</text>
   `;
 }
 window.addEventListener('load', drawLoss);
@@ -1545,11 +1723,12 @@ window.addEventListener('load', drawLoss);
   const canvas = document.getElementById('embedCanvas');
   const ctx = canvas.getContext('2d');
   const DPR = window.devicePixelRatio || 1;
-  let W, H;
+  let W, H, isMobile;
 
   function resize() {
     W = canvas.clientWidth;
     H = canvas.clientHeight || 340;
+    isMobile = W < 500;
     canvas.width = W * DPR;
     canvas.height = H * DPR;
     ctx.scale(DPR, DPR);
@@ -1558,14 +1737,27 @@ window.addEventListener('load', drawLoss);
 
   const GREY = '#888780';
   const CAT_COLORS = { animals:'#4f53e8', places:'#e98d37', verbs:'#3dd6d2', emotions:'#c9a830' };
-  const CLUSTERS = {
-    animals:  { cx:0.14, cy:0.32 },
-    places:   { cx:0.55, cy:0.20 },
-    verbs:    { cx:0.32, cy:0.76 },
-    emotions: { cx:0.82, cy:0.70 },
-  };
 
-  const WORD_DATA = [
+  // Cluster positions — mobile uses symmetric quadrant layout
+  function getClusters() {
+    if (isMobile) {
+      return {
+        animals:  { cx: 0.25, cy: 0.25 },
+        places:   { cx: 0.75, cy: 0.25 },
+        verbs:    { cx: 0.25, cy: 0.75 },
+        emotions: { cx: 0.75, cy: 0.75 },
+      };
+    }
+    return {
+      animals:  { cx:0.14, cy:0.32 },
+      places:   { cx:0.55, cy:0.20 },
+      verbs:    { cx:0.32, cy:0.76 },
+      emotions: { cx:0.82, cy:0.70 },
+    };
+  }
+
+  // Fewer words on mobile to avoid crowding
+  const WORD_DATA_DESKTOP = [
     {label:'cat',cat:'animals'},{label:'dog',cat:'animals'},{label:'bird',cat:'animals'},
     {label:'fish',cat:'animals'},{label:'wolf',cat:'animals'},{label:'bear',cat:'animals'},
     {label:'fox',cat:'animals'},{label:'deer',cat:'animals'},
@@ -1580,108 +1772,164 @@ window.addEventListener('load', drawLoss);
     {label:'pride',cat:'emotions'},{label:'awe',cat:'emotions'},
   ];
 
+  const WORD_DATA_MOBILE = [
+    {label:'cat',cat:'animals'},{label:'dog',cat:'animals'},{label:'bird',cat:'animals'},
+    {label:'wolf',cat:'animals'},{label:'bear',cat:'animals'},
+    {label:'Paris',cat:'places'},{label:'Tokyo',cat:'places'},
+    {label:'Rome',cat:'places'},{label:'London',cat:'places'},
+    {label:'run',cat:'verbs'},{label:'jump',cat:'verbs'},{label:'swim',cat:'verbs'},
+    {label:'fly',cat:'verbs'},{label:'dive',cat:'verbs'},
+    {label:'joy',cat:'emotions'},{label:'sad',cat:'emotions'},{label:'fear',cat:'emotions'},
+    {label:'love',cat:'emotions'},{label:'awe',cat:'emotions'},
+  ];
+
+  function getWordData() {
+    return isMobile ? WORD_DATA_MOBILE : WORD_DATA_DESKTOP;
+  }
+
   function rand(a,b){return a+Math.random()*(b-a);}
   function lerpColor(a,b,t){const p=s=>{const v=parseInt(s.slice(1),16);return[v>>16&255,v>>8&255,v&255];};const[r1,g1,b1]=p(a),[r2,g2,b2]=p(b);return`rgb(${Math.round(r1+(r2-r1)*t)},${Math.round(g1+(g2-g1)*t)},${Math.round(b1+(b2-b1)*t)})`;}
   function easeOutCubic(t){return 1-Math.pow(1-t,3);}
   function easeInOutQuad(t){return t<0.5?2*t*t:1-Math.pow(-2*t+2,2)/2;}
 
-  const SLOT_W=62, SLOT_H=22, GAP_X=10, GAP_Y=14;
+  let targetMap = {};
 
-  let targetMap={};
-  function computeTargets(){
-    targetMap={};
-    const bycat={};
-    WORD_DATA.forEach(d=>{(bycat[d.cat]=bycat[d.cat]||[]).push(d.label);});
-    Object.entries(bycat).forEach(([cat,labels])=>{
-      const cl=CLUSTERS[cat], cx=cl.cx*W, cy=cl.cy*H, n=labels.length;
-      const cols=Math.ceil(Math.sqrt(n));
-      const rows=Math.ceil(n/cols);
-      const totalW=cols*SLOT_W+(cols-1)*GAP_X;
-      const totalH=rows*SLOT_H+(rows-1)*GAP_Y;
-      labels.forEach((l,i)=>{
-        const c=i%cols, r=Math.floor(i/cols);
-        targetMap[l]={
-          x: cx - totalW/2 + c*(SLOT_W+GAP_X) + SLOT_W/2,
-          y: cy - totalH/2 + r*(SLOT_H+GAP_Y) + SLOT_H/2,
+  function computeTargets() {
+    targetMap = {};
+    const CLUSTERS = getClusters();
+    const WORD_DATA = getWordData();
+    // Mobile: smaller slots, tighter grid
+    const SLOT_W = isMobile ? 46 : 62;
+    const SLOT_H = isMobile ? 18 : 22;
+    const GAP_X  = isMobile ? 6  : 10;
+    const GAP_Y  = isMobile ? 10 : 14;
+    const FONT_SIZE = isMobile ? 13 : 16;
+
+    const bycat = {};
+    WORD_DATA.forEach(d => { (bycat[d.cat] = bycat[d.cat] || []).push(d.label); });
+    Object.entries(bycat).forEach(([cat, labels]) => {
+      const cl = CLUSTERS[cat], cx = cl.cx * W, cy = cl.cy * H, n = labels.length;
+      const cols = Math.ceil(Math.sqrt(n));
+      const rows = Math.ceil(n / cols);
+      const totalW = cols * SLOT_W + (cols - 1) * GAP_X;
+      const totalH = rows * SLOT_H + (rows - 1) * GAP_Y;
+      labels.forEach((l, i) => {
+        const c = i % cols, r = Math.floor(i / cols);
+        targetMap[l] = {
+          x: cx - totalW / 2 + c * (SLOT_W + GAP_X) + SLOT_W / 2,
+          y: cy - totalH / 2 + r * (SLOT_H + GAP_Y) + SLOT_H / 2,
+          fontSize: FONT_SIZE,
         };
       });
     });
   }
 
-  const words=WORD_DATA.map((d,i)=>{
-    const a=(i/WORD_DATA.length)*Math.PI*2+Math.random()*0.5, s=rand(0.4,0.8);
-    return{label:d.label,cat:d.cat,x:rand(0.1,0.9)*600,y:rand(0.1,0.9)*340,vx:Math.cos(a)*s,vy:Math.sin(a)*s,colorT:0,alpha:1,settleDelay:0};
-  });
+  let words = [];
 
-  function clamp(w){const p=40;if(w.x<p){w.x=p;w.vx=Math.abs(w.vx);}if(w.x>W-p){w.x=W-p;w.vx=-Math.abs(w.vx);}if(w.y<p){w.y=p;w.vy=Math.abs(w.vy);}if(w.y>H-p){w.y=H-p;w.vy=-Math.abs(w.vy);}}
-
-  function resetWords(){
-    const s=[...words].sort(()=>Math.random()-0.5);
-    s.forEach((w,i)=>{
-      const a=Math.random()*Math.PI*2;
-      w.vx=Math.cos(a)*rand(0.4,0.8); w.vy=Math.sin(a)*rand(0.4,0.8);
-      w.colorT=0; w.alpha=0; w.settleDelay=i*rand(40,120);
+  function initWords() {
+    const WORD_DATA = getWordData();
+    words = WORD_DATA.map((d, i) => {
+      const a = (i / WORD_DATA.length) * Math.PI * 2 + Math.random() * 0.5;
+      const s = rand(0.4, 0.8);
+      return { label: d.label, cat: d.cat, x: rand(0.05, 0.95) * W, y: rand(0.05, 0.95) * H, vx: Math.cos(a) * s, vy: Math.sin(a) * s, colorT: 0, alpha: 1, settleDelay: 0 };
     });
   }
 
-  const PHASE={FADEIN:0,FLOAT:1,SETTLING:2,HOLD:3,FADE:4};
-  let phase=PHASE.FLOAT, phaseElapsed=0;
-  const FLOAT_DUR=3800, SETTLE_DUR=1100, HOLD_DUR=2200, FADE_DUR=900, FADEIN_DUR=700;
-  let lastTime=performance.now();
+  function clamp(w) {
+    const p = 8;
+    const hw = (w.width || 0) / 2;
+    if (w.x - hw < p) { w.x = p + hw; w.vx = Math.abs(w.vx); }
+    if (w.x + hw > W - p) { w.x = W - p - hw; w.vx = -Math.abs(w.vx); }
+    if (w.y < p) { w.y = p; w.vy = Math.abs(w.vy); }
+    if (w.y > H - p) { w.y = H - p; w.vy = -Math.abs(w.vy); }
+  }
 
-  function tick(now){
+  function resetWords() {
+    const s = [...words].sort(() => Math.random() - 0.5);
+    s.forEach((w, i) => {
+      const a = Math.random() * Math.PI * 2;
+      w.vx = Math.cos(a) * rand(0.4, 0.8); w.vy = Math.sin(a) * rand(0.4, 0.8);
+      w.colorT = 0; w.alpha = 0; w.settleDelay = i * rand(40, 120);
+    });
+  }
+
+  const PHASE = { FADEIN:0, FLOAT:1, SETTLING:2, HOLD:3, FADE:4 };
+  let phase = PHASE.FLOAT, phaseElapsed = 0;
+  const FLOAT_DUR = 3800, SETTLE_DUR = 1100, HOLD_DUR = 2200, FADE_DUR = 900, FADEIN_DUR = 700;
+  let lastTime = performance.now();
+
+  function tick(now) {
     requestAnimationFrame(tick);
-    const dt=Math.min(now-lastTime,32); lastTime=now; phaseElapsed+=dt;
-    ctx.clearRect(0,0,W,H);
+    const dt = Math.min(now - lastTime, 32); lastTime = now; phaseElapsed += dt;
+    ctx.clearRect(0, 0, W, H);
 
-    if(phase===PHASE.FADEIN){
-      const alpha=easeInOutQuad(Math.min(1,phaseElapsed/FADEIN_DUR));
-      words.forEach(w=>{w.x+=w.vx;w.y+=w.vy;clamp(w);w.alpha=alpha;w.colorT=0;});
-      if(phaseElapsed>=FADEIN_DUR){words.forEach(w=>w.alpha=1);phase=PHASE.FLOAT;phaseElapsed=0;}
-
-    }else if(phase===PHASE.FLOAT){
-      words.forEach(w=>{w.x+=w.vx;w.y+=w.vy;clamp(w);w.alpha=1;w.colorT=0;});
-      if(phaseElapsed>=FLOAT_DUR){
-        const s=[...words].sort(()=>Math.random()-0.5);
-        s.forEach((w,i)=>{w.settleDelay=i*rand(60,160);});
-        phase=PHASE.SETTLING; phaseElapsed=0;
+    if (phase === PHASE.FADEIN) {
+      const alpha = easeInOutQuad(Math.min(1, phaseElapsed / FADEIN_DUR));
+      words.forEach(w => { w.x += w.vx; w.y += w.vy; clamp(w); w.alpha = alpha; w.colorT = 0; });
+      if (phaseElapsed >= FADEIN_DUR) { words.forEach(w => w.alpha = 1); phase = PHASE.FLOAT; phaseElapsed = 0; }
+    } else if (phase === PHASE.FLOAT) {
+      words.forEach(w => { w.x += w.vx; w.y += w.vy; clamp(w); w.alpha = 1; w.colorT = 0; });
+      if (phaseElapsed >= FLOAT_DUR) {
+        const s = [...words].sort(() => Math.random() - 0.5);
+        s.forEach((w, i) => { w.settleDelay = i * rand(60, 160); });
+        phase = PHASE.SETTLING; phaseElapsed = 0;
       }
-
-    }else if(phase===PHASE.SETTLING){
-      words.forEach(w=>{
-        const lt=phaseElapsed-w.settleDelay;
-        if(lt<=0){w.x+=w.vx;w.y+=w.vy;clamp(w);return;}
-        const tgt=targetMap[w.label], t=Math.min(1,lt/SETTLE_DUR), pull=easeOutCubic(t);
-        w.vx*=0.88; w.vy*=0.88;
-        w.x+=w.vx+(tgt.x-w.x)*pull*0.07;
-        w.y+=w.vy+(tgt.y-w.y)*pull*0.07;
-        w.colorT=easeInOutQuad(t);
+    } else if (phase === PHASE.SETTLING) {
+      words.forEach(w => {
+        const lt = phaseElapsed - w.settleDelay;
+        if (lt <= 0) { w.x += w.vx; w.y += w.vy; clamp(w); return; }
+        const tgt = targetMap[w.label], t = Math.min(1, lt / SETTLE_DUR), pull = easeOutCubic(t);
+        w.vx *= 0.88; w.vy *= 0.88;
+        w.x += w.vx + (tgt.x - w.x) * pull * 0.07;
+        w.y += w.vy + (tgt.y - w.y) * pull * 0.07;
+        w.colorT = easeInOutQuad(t);
       });
-      const maxDelay=Math.max(...words.map(w=>w.settleDelay));
-      if(phaseElapsed>maxDelay+SETTLE_DUR+300){phase=PHASE.HOLD;phaseElapsed=0;}
-
-    }else if(phase===PHASE.HOLD){
-      words.forEach(w=>{const tgt=targetMap[w.label];w.x+=(tgt.x-w.x)*0.08;w.y+=(tgt.y-w.y)*0.08;w.colorT=1;w.vx=0;w.vy=0;});
-      if(phaseElapsed>=HOLD_DUR){phase=PHASE.FADE;phaseElapsed=0;}
-
-    }else if(phase===PHASE.FADE){
-      const alpha=1-easeInOutQuad(Math.min(1,phaseElapsed/FADE_DUR));
-      words.forEach(w=>{const tgt=targetMap[w.label];w.x+=(tgt.x-w.x)*0.04;w.y+=(tgt.y-w.y)*0.04;w.colorT=1;w.alpha=alpha;});
-      if(phaseElapsed>=FADE_DUR){resetWords();phase=PHASE.FADEIN;phaseElapsed=0;}
+      const maxDelay = Math.max(...words.map(w => w.settleDelay));
+      if (phaseElapsed > maxDelay + SETTLE_DUR + 300) { phase = PHASE.HOLD; phaseElapsed = 0; }
+    } else if (phase === PHASE.HOLD) {
+      words.forEach(w => { const tgt = targetMap[w.label]; w.x += (tgt.x - w.x) * 0.08; w.y += (tgt.y - w.y) * 0.08; w.colorT = 1; w.vx = 0; w.vy = 0; });
+      if (phaseElapsed >= HOLD_DUR) { phase = PHASE.FADE; phaseElapsed = 0; }
+    } else if (phase === PHASE.FADE) {
+      const alpha = 1 - easeInOutQuad(Math.min(1, phaseElapsed / FADE_DUR));
+      words.forEach(w => { const tgt = targetMap[w.label]; w.x += (tgt.x - w.x) * 0.04; w.y += (tgt.y - w.y) * 0.04; w.colorT = 1; w.alpha = alpha; });
+      if (phaseElapsed >= FADE_DUR) { initWords(); resetWords(); phase = PHASE.FADEIN; phaseElapsed = 0; }
     }
 
-    words.forEach(w=>{
+    words.forEach(w => {
+      const tgt = targetMap[w.label];
+      const fontSize = tgt ? tgt.fontSize : (isMobile ? 13 : 16);
       ctx.save();
-      ctx.globalAlpha=w.alpha;
-      ctx.font='500 16px "DM Mono", monospace';
-      ctx.fillStyle=lerpColor(GREY,CAT_COLORS[w.cat],w.colorT);
-      ctx.fillText(w.label,w.x,w.y);
+      ctx.globalAlpha = w.alpha;
+      ctx.font = `500 ${fontSize}px "DM Mono", monospace`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      // Cache word width for accurate collision
+      if (!w.width || w.lastFontSize !== fontSize) {
+        w.width = ctx.measureText(w.label).width;
+        w.lastFontSize = fontSize;
+      }
+      ctx.fillStyle = lerpColor(GREY, CAT_COLORS[w.cat], w.colorT);
+      ctx.fillText(w.label, w.x, w.y);
       ctx.restore();
     });
   }
 
-  window.addEventListener('load',()=>{resize();requestAnimationFrame(tick);});
-  window.addEventListener('resize',resize);
+  let resizeTimer;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+      const wasMobile = isMobile;
+      resize();
+      // Re-init words if breakpoint changed
+      if (wasMobile !== isMobile) { initWords(); resetWords(); phase = PHASE.FADEIN; phaseElapsed = 0; }
+    }, 150);
+  });
+
+  window.addEventListener('load', () => {
+    resize();
+    initWords();
+    requestAnimationFrame(tick);
+  });
 })();
 </script>
 </body>
