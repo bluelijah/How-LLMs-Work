@@ -376,7 +376,6 @@ nav {
   transition: transform 0.2s, box-shadow 0.2s;
   position: relative;
 }
-.arch-layer:hover { transform: translateX(6px); }
 
 .arch-layer.blue  { background:rgba(23,123,214,0.08); border-color:rgba(23,123,214,0.35); }
 .arch-layer.indigo{ background:rgba(23,28,214,0.08);  border-color:rgba(23,28,214,0.45);  }
@@ -425,23 +424,76 @@ nav {
   white-space: nowrap;
 }
 
-.arch-tooltip {
+/* ── ARCH OVERLAY ───────────────────────────────────────── */
+.arch-overlay {
   display: none;
-  position: absolute;
-  left: calc(100% + 16px);
-  top: 0;
-  width: 220px;
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(25, 25, 38, 0.85);
+  backdrop-filter: blur(2px);
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+.arch-overlay.open { display: flex; }
+.arch-overlay-card {
   background: var(--surface2);
   border: 1px solid var(--border);
-  border-radius: var(--r);
-  padding: 0.9rem 1rem;
+  border-radius: var(--r-lg);
+  padding: 2rem 2.2rem;
+  max-width: 480px;
+  width: 100%;
+  position: relative;
+}
+.arch-overlay-num {
+  font-family: 'DM Mono', monospace;
+  font-size: 1rem;
+  color: var(--blue);
+  letter-spacing: 0.2em;
+  margin-bottom: 0.5rem;
+}
+.arch-overlay-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.6rem;
+  color: var(--text);
+  margin-bottom: 0.8rem;
+}
+.arch-overlay-desc {
   font-size: 1rem;
   color: var(--muted);
-  line-height: 1.6;
-  z-index: 10;
+  line-height: 1.7;
+  max-width: none;
+}
+.arch-overlay-close {
+  position: absolute;
+  top: 1rem; right: 1rem;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  width: 32px; height: 32px;
+  color: var(--muted);
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.2s, color 0.2s;
+}
+.arch-overlay-close:hover { border-color: var(--blue); color: var(--text); }
+
+.arch-tap-hint {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.8rem;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--yellow);
+  opacity: 0.6;
   pointer-events: none;
 }
-.arch-layer:hover .arch-tooltip { display: block; }
+.arch-tap-hint::after { content: 'click me'; }
+
 
 /* ── SECTION 4: ATTENTION ───────────────────────────────── */
 #attention { background: var(--bg); }
@@ -805,8 +857,7 @@ footer span { color: var(--blue); }
 @media (max-width: 768px) {
     .hero-grid { grid-template-columns: 1fr; }
     .hero-visual { display: none; }
-    .training-loop { grid-template-columns: 1fr; }
-    .arch-tooltip { display: none !important; }
+    .training-loop { grid-template-columns: 1fr; }    
     .arch-repeat-badge { right: -70px; font-size: 1rem; }
     .token-btn {
         padding: 0.65rem 0.9rem;
@@ -821,6 +872,11 @@ footer span { color: var(--blue); }
     }
     #tok-ann-wrap {
         display: none !important;
+    }
+    .arch-tap-hint::after { content: 'tap me'; }
+        .attn-interp {
+        
+        height: 132px;
     }
 }
 </style>
@@ -919,37 +975,47 @@ footer span { color: var(--blue); }
   <p class="reveal reveal-delay-2" style="margin-top:1rem">The embedded vectors pass through N transformer layers, each refining the representation. Hover any layer to see what it does.</p>
 
   <div class="arch-diagram reveal reveal-delay-3">
-    <div class="arch-layer green">
-      <div class="arch-layer-title">Input tokens</div>
-      <div class="arch-layer-sub">Raw text → token IDs</div>
-      <div class="arch-tooltip">Your prompt as a sequence of integers. "The cat" might be [464, 3797].</div>
-    </div>
-    <div class="arch-arrow"></div>
-    <div class="arch-layer cyan">
-      <div class="arch-layer-title">Embedding + positional encoding</div>
-      <div class="arch-layer-sub">IDs → vectors with position info</div>
-      <div class="arch-tooltip">Token IDs become dense vectors. A sine/cosine positional signal is added so the model knows token order.</div>
-    </div>
-    <div class="arch-arrow"></div>
-    <div class="arch-layer blue" style="position:relative">
-      <div class="arch-layer-title">Transformer block x N</div>
-      <div class="arch-layer-sub">Self-attention + feed-forward + layer norm</div>
-      <div class="arch-repeat-badge">x 32 to 128 layers</div>
-      <div class="arch-tooltip">Each block runs attention (tokens look at each other) then a feed-forward network. This is where reasoning happens.</div>
-    </div>
-    <div class="arch-arrow"></div>
-    <div class="arch-layer indigo">
-      <div class="arch-layer-title">Output projection</div>
-      <div class="arch-layer-sub">Final vector → vocab logits</div>
-      <div class="arch-tooltip">The last token's vector gets multiplied by a weight matrix to produce one score per vocabulary entry.</div>
-    </div>
-    <div class="arch-arrow"></div>
-    <div class="arch-layer orange">
-      <div class="arch-layer-title">Softmax → sample</div>
-      <div class="arch-layer-sub">Scores → probabilities → next token</div>
-      <div class="arch-tooltip">Softmax converts raw scores into probabilities summing to 1. The model samples from this distribution to pick the next token.</div>
-    </div>
+  <div class="arch-layer green" onclick="openArchOverlay(0)">
+    <span class="arch-tap-hint"></span>
+    <div class="arch-layer-title">Input tokens</div>
+    <div class="arch-layer-sub">Raw text → token IDs</div>
   </div>
+  <div class="arch-arrow"></div>
+  <div class="arch-layer cyan" onclick="openArchOverlay(1)">
+    <span class="arch-tap-hint"></span>
+    <div class="arch-layer-title">Embedding + positional encoding</div>
+    <div class="arch-layer-sub">IDs → vectors with position info</div>
+  </div>
+  <div class="arch-arrow"></div>
+  <div class="arch-layer blue" onclick="openArchOverlay(2)">
+    <span class="arch-tap-hint"></span>
+    <div class="arch-layer-title">Transformer block x N</div>
+    <div class="arch-layer-sub">Self-attention + feed-forward + layer norm</div>
+    <div class="arch-repeat-badge">x 32 to 128 layers</div>
+  </div>
+  <div class="arch-arrow"></div>
+  <div class="arch-layer indigo" onclick="openArchOverlay(3)">
+    <span class="arch-tap-hint"></span>
+    <div class="arch-layer-title">Output projection</div>
+    <div class="arch-layer-sub">Full context → one score per word</div>
+  </div>
+  <div class="arch-arrow"></div>
+  <div class="arch-layer orange" onclick="openArchOverlay(4)">
+    <span class="arch-tap-hint"></span>
+    <div class="arch-layer-title">Softmax → sample</div>
+    <div class="arch-layer-sub">Scores → probabilities → next token</div>
+  </div>
+</div>
+
+<!-- Overlay -->
+<div class="arch-overlay" id="archOverlay" onclick="closeArchOverlay(event)">
+  <div class="arch-overlay-card">
+    <button class="arch-overlay-close" onclick="closeArchOverlay()">✕</button>
+    <div class="arch-overlay-num" id="archOverlayNum"></div>
+    <div class="arch-overlay-title" id="archOverlayTitle"></div>
+    <div class="arch-overlay-desc" id="archOverlayDesc"></div>
+  </div>
+</div>
 </section>
 
 <!-- ── 4. ATTENTION ───────────────────────────────────── -->
@@ -972,7 +1038,7 @@ footer span { color: var(--blue); }
   <div class="glow-orb" style="width:400px;height:400px;background:var(--blue);top:-80px;right:-80px;"></div>
   <div class="section-label reveal">05 - Generation</div>
   <h2 class="reveal reveal-delay-1">One token<br><em style="color:var(--blue);font-style:italic">at a time</em></h2>
-  <p class="reveal reveal-delay-2" style="margin-top:1rem">The model generates text autoregressively - it produces one token, appends it to the input, then runs the whole forward pass again. Every token is a fresh prediction.</p>
+  <p class="reveal reveal-delay-2" style="margin-top:1rem">The model generates text autoregressively: it produces one token, appends it to the input, then runs the whole forward pass again. Every token is a fresh prediction.</p>
 
   <div class="gen-demo reveal reveal-delay-3">
     <div class="gen-prompt">
@@ -986,7 +1052,6 @@ footer span { color: var(--blue); }
     <div class="gen-controls">
       <button class="gen-btn primary" onclick="startGeneration()">Generate</button>
       <button class="gen-btn" onclick="resetGeneration()">Reset</button>
-      <span class="gen-speed-label">token by token</span>
     </div>
   </div>
 </section>
@@ -1109,6 +1174,54 @@ footer span { color: var(--blue); }
 </footer>
 
 <script>
+
+/* ── ARCH OVERLAY ───────────────────────────────────────── */
+const archData = [
+  {
+    num: "STEP 01",
+    title: "Input tokens",
+    desc: "Your prompt is turned into a sequence of integers. \"The cat\" might be [464, 3797]."
+  },
+  {
+    num: "STEP 02",
+    title: "Embedding + positional encoding",
+    desc: "Since Transformers process all tokens simultaneously, they dont know which word came first, or any order at all. So one of the initial steps is labeling each token vector with a unique fingerprint. The formula used is sin(p/10000^(2i/d)) for even dimensions, where d is dimensions, and cos(p/10000^(2i/d)) for odd dimensions."
+  },
+  {
+    num: "STEP 03",
+    title: "Transformer block x N",
+    desc: "Each block runs attention (tokens exchange information) then a feed-forward network (each token is individually processed). Stacking many blocks lets meaning build up gradually, where early layers catch syntax, later layers catch reasoning."
+  },
+  {
+    num: "STEP 04",
+    title: "Output projection",
+    desc: "The last token has attended to everything before it, so its vector summarizes the full context. Multiplying it by a learned matrix (a container of vectors) produces one score per vocabulary word. The higher the score, the more likely the model thinks that word is next."
+  },
+  {
+    num: "STEP 05",
+    title: "Softmax → sample",
+    desc: "Softmax converts raw scores into probabilities that sum to 1. Rather than always picking the top one, the model samples, treating it like a weighted lottery. This is what gives it variability. Temperature controls how flat or sharp that distribution is."
+  },
+];
+
+function openArchOverlay(i) {
+  const d = archData[i];
+  document.getElementById('archOverlayNum').textContent = d.num;
+  document.getElementById('archOverlayTitle').textContent = d.title;
+  document.getElementById('archOverlayDesc').textContent = d.desc;
+  document.getElementById('archOverlay').classList.add('open');
+}
+
+function closeArchOverlay(e) {
+  if (!e || e.target === document.getElementById('archOverlay') || e.target.classList.contains('arch-overlay-close')) {
+    document.getElementById('archOverlay').classList.remove('open');
+  }
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') document.getElementById('archOverlay').classList.remove('open');
+});
+
 /* ── SCROLL REVEAL ─────────────────────────────────────── */
 const observer = new IntersectionObserver(entries => {
   entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
