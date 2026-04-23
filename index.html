@@ -910,7 +910,7 @@ footer span { color: var(--blue); }
   <p class="reveal reveal-delay-2" style="margin-top:1rem">Each token ID is looked up in a giant table to produce a vector of floats, typically thousands of dimensions. A vector is a list of values, in this instance, decimal precise values (0.1, -0.5, 0.8) called floats. Each dimension is one of these float values. Semantically similar words land near each other. This is where meaning first enters the model.</p>
 
   <div class="embedding-visual reveal reveal-delay-3">
-    <canvas class="embed-canvas" id="embedCanvas"></canvas>
+    <canvas id="embedCanvas" style="width:100%;height:340px;display:block;"></canvas>
   </div>
   <div class="embed-legend reveal reveal-delay-4">
     <div class="embed-legend-item"><div class="embed-dot" style="background:var(--indigo)"></div>animals</div>
@@ -1260,71 +1260,6 @@ document.getElementById('tokenInput').addEventListener('input', e => {
 });
 tokenize();
 
-/* ── EMBEDDING SCATTER ─────────────────────────────────── */
-const embedWords = [
-  {w:"cat",    x:0.12, y:0.20, c:"var(--indigo)"},
-  {w:"dog",    x:0.18, y:0.28, c:"var(--indigo)"},
-  {w:"bird",   x:0.08, y:0.38, c:"var(--indigo)"},
-  {w:"fish",   x:0.22, y:0.15, c:"var(--indigo)"},
-  {w:"Paris",  x:0.72, y:0.18, c:"var(--orange)"},
-  {w:"London", x:0.80, y:0.28, c:"var(--orange)"},
-  {w:"Tokyo",  x:0.68, y:0.32, c:"var(--orange)"},
-  {w:"run",    x:0.50, y:0.72, c:"var(--cyan)"},
-  {w:"jump",   x:0.58, y:0.68, c:"var(--cyan)"},
-  {w:"swim",   x:0.44, y:0.80, c:"var(--cyan)"},
-  {w:"joy",    x:0.82, y:0.72, c:"var(--yellow)"},
-  {w:"sad",    x:0.90, y:0.62, c:"var(--yellow)"},
-  {w:"anger",  x:0.86, y:0.80, c:"var(--yellow)"},
-];
-
-function drawEmbed() {
-  const canvas = document.getElementById('embedCanvas');
-  if (!canvas) return;
-  const W = canvas.clientWidth || 680;
-  const H = 320;
-  canvas.width = W * devicePixelRatio;
-  canvas.height = H * devicePixelRatio;
-  canvas.style.height = H + 'px';
-  const ctx = canvas.getContext('2d');
-  ctx.scale(devicePixelRatio, devicePixelRatio);
-  ctx.clearRect(0, 0, W, H);
-
-  const colorMap = {
-    'var(--blue)':   '#5ba8e8',
-    'var(--indigo)': '#4f53e8',
-    'var(--orange)': '#e98d37',
-    'var(--cyan)':   '#3dd6d2',
-    'var(--yellow)':  '#d6d217',
-  };
-
-  const pad = 32;
-  embedWords.forEach(pt => {
-    const px = pad + pt.x * (W - pad*2);
-    const py = pad + pt.y * (H - pad*2);
-    const col = colorMap[pt.c] || pt.c;
-
-    ctx.beginPath();
-    ctx.arc(px, py, 6, 0, Math.PI*2);
-    ctx.fillStyle = col;
-    ctx.globalAlpha = 1;
-    ctx.fill();
-
-    const label = pt.w;
-    ctx.font = '500 13px "DM Mono", monospace';
-    const tw = ctx.measureText(label).width;
-    const lx = px + 10;
-    const ly = py + 4;
-
-    ctx.fillStyle = 'rgba(6,6,14,0.75)';
-    ctx.fillRect(lx - 2, ly - 12, tw + 6, 17);
-
-    ctx.fillStyle = col;
-    ctx.globalAlpha = 1;
-    ctx.fillText(label, lx, ly);
-  });
-}
-window.addEventListener('load', drawEmbed);
-window.addEventListener('resize', drawEmbed);
 
 /* ── ATTENTION DEMO ────────────────────────────────────── */
 const attnSentence = ["The","river","bank","was","steep"];
@@ -1484,6 +1419,150 @@ function drawLoss() {
   `;
 }
 window.addEventListener('load', drawLoss);
+</script>
+<script>
+(function() {
+  const canvas = document.getElementById('embedCanvas');
+  const ctx = canvas.getContext('2d');
+  const DPR = window.devicePixelRatio || 1;
+  let W, H;
+
+  function resize() {
+    W = canvas.clientWidth;
+    H = canvas.clientHeight || 340;
+    canvas.width = W * DPR;
+    canvas.height = H * DPR;
+    ctx.scale(DPR, DPR);
+    computeTargets();
+  }
+
+  const GREY = '#888780';
+  const CAT_COLORS = { animals:'#4f53e8', places:'#e98d37', verbs:'#3dd6d2', emotions:'#c9a830' };
+  const CLUSTERS = {
+    animals:  { cx:0.14, cy:0.32 },
+    places:   { cx:0.55, cy:0.20 },
+    verbs:    { cx:0.32, cy:0.76 },
+    emotions: { cx:0.82, cy:0.70 },
+  };
+
+  const WORD_DATA = [
+    {label:'cat',cat:'animals'},{label:'dog',cat:'animals'},{label:'bird',cat:'animals'},
+    {label:'fish',cat:'animals'},{label:'wolf',cat:'animals'},{label:'bear',cat:'animals'},
+    {label:'fox',cat:'animals'},{label:'deer',cat:'animals'},
+    {label:'Paris',cat:'places'},{label:'London',cat:'places'},{label:'Tokyo',cat:'places'},
+    {label:'Rome',cat:'places'},{label:'Berlin',cat:'places'},{label:'Cairo',cat:'places'},
+    {label:'Sydney',cat:'places'},
+    {label:'run',cat:'verbs'},{label:'jump',cat:'verbs'},{label:'swim',cat:'verbs'},
+    {label:'climb',cat:'verbs'},{label:'fly',cat:'verbs'},{label:'crawl',cat:'verbs'},
+    {label:'sprint',cat:'verbs'},{label:'dive',cat:'verbs'},
+    {label:'joy',cat:'emotions'},{label:'sad',cat:'emotions'},{label:'anger',cat:'emotions'},
+    {label:'fear',cat:'emotions'},{label:'love',cat:'emotions'},{label:'grief',cat:'emotions'},
+    {label:'pride',cat:'emotions'},{label:'awe',cat:'emotions'},
+  ];
+
+  function rand(a,b){return a+Math.random()*(b-a);}
+  function lerpColor(a,b,t){const p=s=>{const v=parseInt(s.slice(1),16);return[v>>16&255,v>>8&255,v&255];};const[r1,g1,b1]=p(a),[r2,g2,b2]=p(b);return`rgb(${Math.round(r1+(r2-r1)*t)},${Math.round(g1+(g2-g1)*t)},${Math.round(b1+(b2-b1)*t)})`;}
+  function easeOutCubic(t){return 1-Math.pow(1-t,3);}
+  function easeInOutQuad(t){return t<0.5?2*t*t:1-Math.pow(-2*t+2,2)/2;}
+
+  const SLOT_W=62, SLOT_H=22, GAP_X=10, GAP_Y=14;
+
+  let targetMap={};
+  function computeTargets(){
+    targetMap={};
+    const bycat={};
+    WORD_DATA.forEach(d=>{(bycat[d.cat]=bycat[d.cat]||[]).push(d.label);});
+    Object.entries(bycat).forEach(([cat,labels])=>{
+      const cl=CLUSTERS[cat], cx=cl.cx*W, cy=cl.cy*H, n=labels.length;
+      const cols=Math.ceil(Math.sqrt(n));
+      const rows=Math.ceil(n/cols);
+      const totalW=cols*SLOT_W+(cols-1)*GAP_X;
+      const totalH=rows*SLOT_H+(rows-1)*GAP_Y;
+      labels.forEach((l,i)=>{
+        const c=i%cols, r=Math.floor(i/cols);
+        targetMap[l]={
+          x: cx - totalW/2 + c*(SLOT_W+GAP_X) + SLOT_W/2,
+          y: cy - totalH/2 + r*(SLOT_H+GAP_Y) + SLOT_H/2,
+        };
+      });
+    });
+  }
+
+  const words=WORD_DATA.map((d,i)=>{
+    const a=(i/WORD_DATA.length)*Math.PI*2+Math.random()*0.5, s=rand(0.4,0.8);
+    return{label:d.label,cat:d.cat,x:rand(0.1,0.9)*600,y:rand(0.1,0.9)*340,vx:Math.cos(a)*s,vy:Math.sin(a)*s,colorT:0,alpha:1,settleDelay:0};
+  });
+
+  function clamp(w){const p=40;if(w.x<p){w.x=p;w.vx=Math.abs(w.vx);}if(w.x>W-p){w.x=W-p;w.vx=-Math.abs(w.vx);}if(w.y<p){w.y=p;w.vy=Math.abs(w.vy);}if(w.y>H-p){w.y=H-p;w.vy=-Math.abs(w.vy);}}
+
+  function resetWords(){
+    const s=[...words].sort(()=>Math.random()-0.5);
+    s.forEach((w,i)=>{
+      const a=Math.random()*Math.PI*2;
+      w.vx=Math.cos(a)*rand(0.4,0.8); w.vy=Math.sin(a)*rand(0.4,0.8);
+      w.colorT=0; w.alpha=0; w.settleDelay=i*rand(40,120);
+    });
+  }
+
+  const PHASE={FADEIN:0,FLOAT:1,SETTLING:2,HOLD:3,FADE:4};
+  let phase=PHASE.FLOAT, phaseElapsed=0;
+  const FLOAT_DUR=3800, SETTLE_DUR=1100, HOLD_DUR=2200, FADE_DUR=900, FADEIN_DUR=700;
+  let lastTime=performance.now();
+
+  function tick(now){
+    requestAnimationFrame(tick);
+    const dt=Math.min(now-lastTime,32); lastTime=now; phaseElapsed+=dt;
+    ctx.clearRect(0,0,W,H);
+
+    if(phase===PHASE.FADEIN){
+      const alpha=easeInOutQuad(Math.min(1,phaseElapsed/FADEIN_DUR));
+      words.forEach(w=>{w.x+=w.vx;w.y+=w.vy;clamp(w);w.alpha=alpha;w.colorT=0;});
+      if(phaseElapsed>=FADEIN_DUR){words.forEach(w=>w.alpha=1);phase=PHASE.FLOAT;phaseElapsed=0;}
+
+    }else if(phase===PHASE.FLOAT){
+      words.forEach(w=>{w.x+=w.vx;w.y+=w.vy;clamp(w);w.alpha=1;w.colorT=0;});
+      if(phaseElapsed>=FLOAT_DUR){
+        const s=[...words].sort(()=>Math.random()-0.5);
+        s.forEach((w,i)=>{w.settleDelay=i*rand(60,160);});
+        phase=PHASE.SETTLING; phaseElapsed=0;
+      }
+
+    }else if(phase===PHASE.SETTLING){
+      words.forEach(w=>{
+        const lt=phaseElapsed-w.settleDelay;
+        if(lt<=0){w.x+=w.vx;w.y+=w.vy;clamp(w);return;}
+        const tgt=targetMap[w.label], t=Math.min(1,lt/SETTLE_DUR), pull=easeOutCubic(t);
+        w.vx*=0.88; w.vy*=0.88;
+        w.x+=w.vx+(tgt.x-w.x)*pull*0.07;
+        w.y+=w.vy+(tgt.y-w.y)*pull*0.07;
+        w.colorT=easeInOutQuad(t);
+      });
+      const maxDelay=Math.max(...words.map(w=>w.settleDelay));
+      if(phaseElapsed>maxDelay+SETTLE_DUR+300){phase=PHASE.HOLD;phaseElapsed=0;}
+
+    }else if(phase===PHASE.HOLD){
+      words.forEach(w=>{const tgt=targetMap[w.label];w.x+=(tgt.x-w.x)*0.08;w.y+=(tgt.y-w.y)*0.08;w.colorT=1;w.vx=0;w.vy=0;});
+      if(phaseElapsed>=HOLD_DUR){phase=PHASE.FADE;phaseElapsed=0;}
+
+    }else if(phase===PHASE.FADE){
+      const alpha=1-easeInOutQuad(Math.min(1,phaseElapsed/FADE_DUR));
+      words.forEach(w=>{const tgt=targetMap[w.label];w.x+=(tgt.x-w.x)*0.04;w.y+=(tgt.y-w.y)*0.04;w.colorT=1;w.alpha=alpha;});
+      if(phaseElapsed>=FADE_DUR){resetWords();phase=PHASE.FADEIN;phaseElapsed=0;}
+    }
+
+    words.forEach(w=>{
+      ctx.save();
+      ctx.globalAlpha=w.alpha;
+      ctx.font='500 13px "DM Mono", monospace';
+      ctx.fillStyle=lerpColor(GREY,CAT_COLORS[w.cat],w.colorT);
+      ctx.fillText(w.label,w.x,w.y);
+      ctx.restore();
+    });
+  }
+
+  window.addEventListener('load',()=>{resize();requestAnimationFrame(tick);});
+  window.addEventListener('resize',resize);
+})();
 </script>
 </body>
 </html>
