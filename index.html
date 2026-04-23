@@ -14,7 +14,7 @@
   --indigo:    #171cd6;
   --cyan:      #17d6d2;
   --orange:    #d67317;
-  --peach:     #e98d37;
+  --yellow:    #d6d217;
   --bg:        #06060e;
   --surface:   #0d0d1e;
   --surface2:  #12122a;
@@ -260,13 +260,6 @@ nav {
 }
 .token-btn:hover { background: #1a8ae8; }
 
-.token-output {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  min-height: 48px;
-}
-
 .tok-badge {
   display: inline-flex;
   flex-direction: column;
@@ -283,8 +276,10 @@ nav {
 }
 .tok-badge span:last-child {
   font-family: 'DM Mono', monospace;
-  font-size: 0.65rem;
+  font-size: 1rem;
   color: var(--muted);
+  text-align: center;
+  width: 100%;
 }
 
 @keyframes pop-in {
@@ -303,10 +298,51 @@ nav {
   display: flex;
   gap: 1.5rem;
   font-family: 'DM Mono', monospace;
-  font-size: 0.78rem;
+  font-size: 1rem;
   color: var(--muted);
 }
 .token-stats strong { color: var(--blue); }
+
+/* ── TOKEN ANNOTATIONS ──────────────────────────────────── */
+.tok-annotations {
+  position: relative;
+}
+.token-output {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-height: 48px;
+}
+.tok-ann-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  opacity: 1;
+  transition: opacity 0.3s;
+  font-family: 'DM Mono', monospace;
+  font-size: 1rem;
+  color: var(--muted);
+}
+.tok-ann-row.hidden { opacity: 0; pointer-events: none; }
+.tok-ann-arrow-left {
+  width: 22px;
+  height: 1px;
+  background: var(--muted);
+  position: relative;
+  flex-shrink: 0;
+  order: 2;
+}
+.tok-ann-arrow-left::before {
+  content: '';
+  position: absolute;
+  left: -5px;
+  top: 50%;
+  transform: translateY(-50%);
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  border-right: 5px solid var(--muted);
+}
+.tok-ann-text { order: 3; }
 
 /* ── SECTION 2: EMBEDDING ───────────────────────────────── */
 #embedding { background: var(--bg); }
@@ -400,10 +436,8 @@ nav {
 }
 
 .arch-repeat-badge {
-  position: absolute;
-  right: -80px;
-  top: 50%;
-  transform: translateY(-50%);
+  display: inline-block;
+  margin-top: 0.4rem;
   font-family: 'DM Mono', monospace;
   font-size: 0.7rem;
   color: var(--blue);
@@ -466,14 +500,16 @@ nav {
 .attn-tok.lit {
   border-color: var(--orange);
   background: rgba(214,115,23,0.12);
-  color: var(--peach);
+  color: var(--yellow);
 }
 
 .attn-arc-svg {
   width: 100%;
-  height: 100px;
+  height: 160px;
   display: block;
+  margin-top: 0.5rem;
   margin-bottom: 1rem;
+  overflow: visible;
 }
 
 .attn-weights {
@@ -517,14 +553,16 @@ nav {
 
 .attn-interp {
   margin-top: 1.2rem;
-  padding: 0.9rem 1.1rem;
+  padding: 1rem 1.1rem;
   background: rgba(214,115,23,0.07);
   border: 1px solid rgba(214,115,23,0.2);
   border-radius: var(--r);
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   color: #c9843a;
   line-height: 1.6;
-  min-height: 60px;
+  height: 72px;
+  display: flex;
+  align-items: center;
 }
 
 /* ── SECTION 5: FORWARD PASS / GENERATION ──────────────── */
@@ -649,9 +687,9 @@ nav {
   margin-bottom: 0.3rem;
 }
 .train-step-desc {
-  font-size: 0.8rem;
+  font-size: 0.92rem;
   color: var(--muted);
-  line-height: 1.5;
+  line-height: 1.55;
 }
 
 .loss-chart-wrap {
@@ -722,7 +760,7 @@ nav {
   display: inline-block;
   margin-bottom: 0.4rem;
 }
-.qkv-step-desc { font-size: 0.8rem; color: var(--muted); line-height: 1.55; }
+.qkv-step-desc { font-size: 0.92rem; color: var(--muted); line-height: 1.55; }
 
 /* ── SECTION 8: RLHF ────────────────────────────────────── */
 #rlhf { background: var(--bg); }
@@ -743,10 +781,10 @@ nav {
 .rlhf-node.n-blue   { background:rgba(23,123,214,0.08); border-color:rgba(23,123,214,0.35); }
 .rlhf-node.n-orange { background:rgba(214,115,23,0.08); border-color:rgba(214,115,23,0.35); }
 .rlhf-node.n-cyan   { background:rgba(23,214,210,0.07); border-color:rgba(23,214,210,0.3); }
-.rlhf-node.n-peach  { background:rgba(233,141,55,0.08); border-color:rgba(233,141,55,0.3); }
+.rlhf-node.n-yellow  { background:rgba(233,141,55,0.08); border-color:rgba(233,141,55,0.3); }
 
 .rlhf-title { font-family:'DM Mono',monospace; font-size:0.82rem; font-weight:500; color:var(--text); }
-.rlhf-desc  { font-size:0.78rem; color:var(--muted); margin-top:0.2rem; }
+.rlhf-desc  { font-size:0.9rem; color:var(--muted); margin-top:0.3rem; line-height:1.5; }
 
 .rlhf-arrow {
   align-self: center;
@@ -819,7 +857,7 @@ footer span { color: var(--blue); }
     <div>
       <div class="hero-eyebrow reveal">AN INTERACTIVE EXPLAINER</div>
       <h1 class="reveal reveal-delay-1">How <em>LLMs</em><br>actually work</h1>
-      <p class="hero-subtitle reveal reveal-delay-2">From raw text to generated language — a visual walkthrough of every step inside a large language model.</p>
+      <p class="hero-subtitle reveal reveal-delay-2">From raw text to generated language - a visual walkthrough of every step inside a large language model.</p>
       <a href="#tokenization" class="hero-cta reveal reveal-delay-3">
         Start exploring
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 7h8M8 4l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -835,16 +873,31 @@ footer span { color: var(--blue); }
 <!-- ── 1. TOKENIZATION ────────────────────────────────── -->
 <section id="tokenization">
   <div class="glow-orb" style="width:500px;height:500px;background:var(--blue);top:-100px;right:-150px;"></div>
-  <div class="section-label reveal">01 — Tokenization</div>
+  <div class="section-label reveal">01 - Tokenization</div>
   <h2 class="reveal reveal-delay-1">Text gets broken<br>into <em style="color:var(--blue);font-style:italic">tokens</em></h2>
-  <p class="reveal reveal-delay-2" style="margin-top:1rem">Before anything else, your text is split into subword chunks called tokens. The model never sees raw characters — it sees a sequence of integer IDs, each representing a token from a fixed vocabulary of ~50,000 entries.</p>
+  <p class="reveal reveal-delay-2" style="margin-top:1rem">Before anything else, your text is split into subword chunks called tokens. The model never sees raw characters - it sees a sequence of token IDs, each representing a token from a fixed vocabulary of ~50,000 entries.</p>
 
   <div class="token-demo reveal reveal-delay-3">
+    <p style="font-size:1rem;color:var(--muted);margin:0 0 1rem;max-width:none;font-family:'Outfit',sans-serif">Enter any word or phrase below to see it split into subword tokens, each with a token ID.</p>
     <div class="token-input-row">
-      <input class="token-input" id="tokenInput" type="text" value="unhappiness" placeholder="Type anything...">
+      <input class="token-input" id="tokenInput" type="text" value="tokenization" placeholder="Try: backpropagation, transformer, unwillingness...">
       <button class="token-btn" onclick="tokenize()">Tokenize</button>
     </div>
-    <div class="token-output" id="tokenOutput"></div>
+    <div class="tok-annotations">
+      <div style="display:flex;align-items:flex-start;gap:1.5rem;flex-wrap:wrap">
+        <div class="token-output" id="tokenOutput"></div>
+        <div id="tok-ann-wrap" style="display:flex;flex-direction:column;gap:0">
+          <div id="tok-ann-subwords" class="tok-ann-row" style="height:29px;align-items:center">
+            <div class="tok-ann-arrow-left"></div>
+            <span class="tok-ann-text">subwords</span>
+          </div>
+          <div id="tok-ann-ids" class="tok-ann-row" style="height:28px;align-items:center;margin-top:2px">
+            <div class="tok-ann-arrow-left"></div>
+            <span class="tok-ann-text">token IDs</span>
+          </div>
+        </div>
+      </div>
+    </div>
     <div class="token-stats" id="tokenStats"></div>
   </div>
 </section>
@@ -852,25 +905,25 @@ footer span { color: var(--blue); }
 <!-- ── 2. EMBEDDING ───────────────────────────────────── -->
 <section id="embedding">
   <div class="glow-orb" style="width:400px;height:400px;background:var(--indigo);bottom:-80px;left:-80px;"></div>
-  <div class="section-label reveal">02 — Embedding</div>
+  <div class="section-label reveal">02 - Embedding</div>
   <h2 class="reveal reveal-delay-1">Token IDs become<br><em style="color:var(--indigo);font-style:italic">dense vectors</em></h2>
-  <p class="reveal reveal-delay-2" style="margin-top:1rem">Each token ID is looked up in a giant table to produce a vector of floats — typically thousands of dimensions. Semantically similar words land near each other. This is where meaning first enters the model.</p>
+  <p class="reveal reveal-delay-2" style="margin-top:1rem">Each token ID is looked up in a giant table to produce a vector of floats, typically thousands of dimensions. A vector is a list of values, in this instance, decimal precise values (0.1, -0.5, 0.8) called floats. Each dimension is one of these float values. Semantically similar words land near each other. This is where meaning first enters the model.</p>
 
   <div class="embedding-visual reveal reveal-delay-3">
     <canvas class="embed-canvas" id="embedCanvas"></canvas>
   </div>
   <div class="embed-legend reveal reveal-delay-4">
-    <div class="embed-legend-item"><div class="embed-dot" style="background:var(--blue)"></div>animals</div>
+    <div class="embed-legend-item"><div class="embed-dot" style="background:var(--indigo)"></div>animals</div>
     <div class="embed-legend-item"><div class="embed-dot" style="background:var(--orange)"></div>places</div>
     <div class="embed-legend-item"><div class="embed-dot" style="background:var(--cyan)"></div>verbs</div>
-    <div class="embed-legend-item"><div class="embed-dot" style="background:var(--peach)"></div>emotions</div>
+    <div class="embed-legend-item"><div class="embed-dot" style="background:var(--yellow)"></div>emotions</div>
   </div>
 </section>
 
 <!-- ── 3. ARCHITECTURE ────────────────────────────────── -->
 <section id="architecture">
   <div class="glow-orb" style="width:450px;height:450px;background:var(--cyan);top:-100px;left:-100px;opacity:0.07;"></div>
-  <div class="section-label reveal">03 — Architecture</div>
+  <div class="section-label reveal">03 - Architecture</div>
   <h2 class="reveal reveal-delay-1">Stacked <em style="color:var(--cyan);font-style:italic">transformer</em><br>layers</h2>
   <p class="reveal reveal-delay-2" style="margin-top:1rem">The embedded vectors pass through N transformer layers, each refining the representation. Hover any layer to see what it does.</p>
 
@@ -888,9 +941,9 @@ footer span { color: var(--blue); }
     </div>
     <div class="arch-arrow"></div>
     <div class="arch-layer blue" style="position:relative">
-      <div class="arch-layer-title">Transformer block × N</div>
+      <div class="arch-layer-title">Transformer block x N</div>
       <div class="arch-layer-sub">Self-attention + feed-forward + layer norm</div>
-      <div class="arch-repeat-badge">× 32–128 layers</div>
+      <div class="arch-repeat-badge">x 32 to 128 layers</div>
       <div class="arch-tooltip">Each block runs attention (tokens look at each other) then a feed-forward network. This is where reasoning happens.</div>
     </div>
     <div class="arch-arrow"></div>
@@ -911,7 +964,7 @@ footer span { color: var(--blue); }
 <!-- ── 4. ATTENTION ───────────────────────────────────── -->
 <section id="attention">
   <div class="glow-orb" style="width:500px;height:500px;background:var(--orange);bottom:-150px;right:-100px;opacity:0.08;"></div>
-  <div class="section-label reveal">04 — Self-Attention</div>
+  <div class="section-label reveal">04 - Self-Attention</div>
   <h2 class="reveal reveal-delay-1">Tokens <em style="color:var(--orange);font-style:italic">attend</em><br>to each other</h2>
   <p class="reveal reveal-delay-2" style="margin-top:1rem">Every token looks at every other token and decides how much to "borrow" from them. Click a token to see where its attention focuses.</p>
 
@@ -926,9 +979,9 @@ footer span { color: var(--blue); }
 <!-- ── 5. GENERATION ──────────────────────────────────── -->
 <section id="generation">
   <div class="glow-orb" style="width:400px;height:400px;background:var(--blue);top:-80px;right:-80px;"></div>
-  <div class="section-label reveal">05 — Generation</div>
+  <div class="section-label reveal">05 - Generation</div>
   <h2 class="reveal reveal-delay-1">One token<br><em style="color:var(--blue);font-style:italic">at a time</em></h2>
-  <p class="reveal reveal-delay-2" style="margin-top:1rem">The model generates text autoregressively — it produces one token, appends it to the input, then runs the whole forward pass again. Every token is a fresh prediction.</p>
+  <p class="reveal reveal-delay-2" style="margin-top:1rem">The model generates text autoregressively - it produces one token, appends it to the input, then runs the whole forward pass again. Every token is a fresh prediction.</p>
 
   <div class="gen-demo reveal reveal-delay-3">
     <div class="gen-prompt">
@@ -950,7 +1003,7 @@ footer span { color: var(--blue); }
 <!-- ── 6. TRAINING ────────────────────────────────────── -->
 <section id="training">
   <div class="glow-orb" style="width:500px;height:500px;background:var(--indigo);bottom:-100px;left:-100px;"></div>
-  <div class="section-label reveal">06 — Training</div>
+  <div class="section-label reveal">06 - Training</div>
   <h2 class="reveal reveal-delay-1">Learning from<br><em style="color:var(--indigo);font-style:italic">prediction error</em></h2>
   <p class="reveal reveal-delay-2" style="margin-top:1rem">The model trains by repeatedly predicting the next token, measuring how wrong it was, and nudging billions of weights to do better. This loop runs across trillions of tokens.</p>
 
@@ -968,7 +1021,7 @@ footer span { color: var(--blue); }
     <div class="train-step" id="ts-2">
       <div class="train-step-num">03</div>
       <div class="train-step-title">Backpropagation</div>
-      <div class="train-step-desc">The chain rule computes each weight's contribution to the error — billions of gradients.</div>
+      <div class="train-step-desc">The chain rule computes each weight's contribution to the error - billions of gradients.</div>
     </div>
     <div class="train-step" id="ts-3">
       <div class="train-step-num">04</div>
@@ -985,7 +1038,7 @@ footer span { color: var(--blue); }
 <!-- ── 7. QKV MATH ─────────────────────────────────────── -->
 <section id="qkv">
   <div class="glow-orb" style="width:400px;height:400px;background:var(--cyan);top:-80px;right:-80px;opacity:0.08;"></div>
-  <div class="section-label reveal">07 — Q, K, V</div>
+  <div class="section-label reveal">07 - Q, K, V</div>
   <h2 class="reveal reveal-delay-1">The mechanics<br>of <em style="color:var(--cyan);font-style:italic">attention</em></h2>
   <p class="reveal reveal-delay-2" style="margin-top:1rem">Every token produces three vectors via learned weight matrices. Their interaction determines how meaning flows across the sequence.</p>
 
@@ -1011,7 +1064,7 @@ footer span { color: var(--blue); }
       <div class="qkv-step-content">
         <div class="qkv-step-title">Normalize with softmax</div>
         <div class="qkv-step-formula">αᵢⱼ = softmax(scoreᵢⱼ)</div>
-        <div class="qkv-step-desc">Softmax turns the raw scores into weights that sum to 1 — a probability distribution over how much to attend to each token.</div>
+        <div class="qkv-step-desc">Softmax turns the raw scores into weights that sum to 1 - a probability distribution over how much to attend to each token.</div>
       </div>
     </div>
     <div class="qkv-step">
@@ -1019,7 +1072,7 @@ footer span { color: var(--blue); }
       <div class="qkv-step-content">
         <div class="qkv-step-title">Weighted sum of Values</div>
         <div class="qkv-step-formula">outputᵢ = Σⱼ αᵢⱼ · Vⱼ</div>
-        <div class="qkv-step-desc">The output for token i is a blend of every token's V, weighted by the attention scores. "bank" borrows heavily from "river" — its output vector is now contextually disambiguated.</div>
+        <div class="qkv-step-desc">The output for token i is a blend of every token's V, weighted by the attention scores. "bank" borrows heavily from "river" - its output vector is now contextually disambiguated.</div>
       </div>
     </div>
   </div>
@@ -1028,9 +1081,9 @@ footer span { color: var(--blue); }
 <!-- ── 8. RLHF ─────────────────────────────────────────── -->
 <section id="rlhf">
   <div class="glow-orb" style="width:450px;height:450px;background:var(--orange);top:-100px;left:-100px;opacity:0.08;"></div>
-  <div class="section-label reveal">08 — RLHF</div>
-  <h2 class="reveal reveal-delay-1">Making it<br><em style="color:var(--peach);font-style:italic">helpful</em></h2>
-  <p class="reveal reveal-delay-2" style="margin-top:1rem">A pretrained model is good at predicting text, not following instructions. Reinforcement Learning from Human Feedback fine-tunes it to be genuinely useful — helpful, honest, and safe.</p>
+  <div class="section-label reveal">08 - RLHF</div>
+  <h2 class="reveal reveal-delay-1">Making it<br><em style="color:var(--yellow);font-style:italic">helpful</em></h2>
+  <p class="reveal reveal-delay-2" style="margin-top:1rem">A pretrained model is good at predicting text, not following instructions. Reinforcement Learning from Human Feedback fine-tunes it to be genuinely useful - helpful, honest, and safe.</p>
 
   <div class="rlhf-flow reveal reveal-delay-3">
     <div class="rlhf-node n-blue">
@@ -1048,9 +1101,9 @@ footer span { color: var(--blue); }
       <div class="rlhf-desc">Humans rank model outputs. A separate reward model learns to predict human preference.</div>
     </div>
     <div class="rlhf-arrow"></div>
-    <div class="rlhf-node n-peach">
+    <div class="rlhf-node n-yellow">
       <div class="rlhf-title">RL fine-tuning (PPO)</div>
-      <div class="rlhf-desc">The policy model is updated to maximize the reward signal — outputs humans prefer score higher.</div>
+      <div class="rlhf-desc">The policy model is updated to maximize the reward signal - outputs humans prefer score higher.</div>
     </div>
     <div class="rlhf-arrow"></div>
     <div class="rlhf-node n-blue">
@@ -1061,7 +1114,7 @@ footer span { color: var(--blue); }
 </section>
 
 <footer>
-  Built to explain <span>large language models</span> — one scroll at a time.
+  Built to explain <span>large language models</span> - one scroll at a time.
 </footer>
 
 <script>
@@ -1095,16 +1148,79 @@ heroTokens.forEach((row, ri) => {
 
 /* ── TOKENIZER DEMO ────────────────────────────────────── */
 const tokenMap = {
-  "unhappiness":  [["un",3954],["happi",16680],["ness",1108]],
-  "transformer":  [["trans",7645],["former",15380]],
-  "neuroscience": [["neuro",14895],["sci",16192],["ence",594]],
-  "unfortunately":[["unfortunately",23444]],
-  "embedding":    [["embed",20521],["ding",768]],
+  "unhappiness":    [["un",3954],["happi",16680],["ness",1108]],
+  "transformer":    [["trans",7645],["former",15380]],
+  "neuroscience":   [["neuro",14895],["sci",16192],["ence",594]],
+  "unfortunately":  [["un",3954],["fortunately",31326]],
+  "embedding":      [["embed",20521],["ding",768]],
   "backpropagation":[["back",1891],["prop",2978],["ag",456],["ation",341]],
-  "artificial":   [["art",472],["ific",3546],["ial",498]],
-  "intelligence": [["intelligence",27286]],
+  "artificial":     [["art",472],["ific",3546],["ial",498]],
+  "intelligence":   [["intel",38183],["ligence",24081]],
+  "unwillingness":  [["un",3954],["willing",10787],["ness",1108]],
+  "unhappy":        [["un",3954],["happy",14779]],
+  "tokenization":   [["token",2316],["iz",1389],["ation",341]],
+  "gradient":       [["grad",8645],["ient",1164]],
+  "attention":      [["attention",14267]],
+  "probability":    [["prob",2966],["ability",3432]],
+  "mathematics":    [["math",11018],["em",364],["atics",3699]],
+  "understanding":  [["under",5664],["standing",5982]],
+  "computational":  [["comput",38568],["ational",1099]],
+  "philosophical":  [["philos",44169],["oph",1289],["ical",1164]],
+  "consciousness":  [["con",992],["scious",45818],["ness",1108]],
+  "representation": [["represent",5380],["ation",341]],
+  "architecture":   [["architect",48246],["ure",495]],
+  "hello":          [["hello",31373]],
+  "world":          [["world",995]],
+  "language":       [["language",4221]],
+  "model":          [["model",2746]],
+  "learning":       [["learning",4673]],
+  "neural":         [["neur",40839],["al",282]],
+  "network":        [["net",3262],["work",1818]],
+  "parameter":      [["param",17143],["eter",2357]],
+  "softmax":        [["soft",4966],["max",2802]],
+  "vector":         [["vector",15879]],
+  "matrix":         [["matrix",17593]],
 };
+
+const bpeFragments = [
+  ["un",3954],["re",260],["in",259],["pre",879],["dis",1221],["over",969],["out",406],["sub",2317],
+  ["ing",278],["tion",341],["ness",1108],["ment",434],["ly",306],["er",263],["est",978],["ful",1228],
+  ["less",1365],["able",1498],["ible",2156],["al",282],["ous",516],["ive",425],["ize",1372],["ise",1228],
+  ["ity",414],["ance",3207],["ence",594],["ism",1042],["ist",1342],["ate",378],["ify",1228],["ary",945],
+];
+
+function bpeSplit(word) {
+  let remaining = word.toLowerCase();
+  const result = [];
+  const prefixes = bpeFragments.filter(([f]) => remaining.startsWith(f) && f.length > 1);
+  if (prefixes.length > 0) {
+    const [pf, pid] = prefixes.sort((a,b) => b[0].length - a[0].length)[0];
+    result.push([pf, pid]);
+    remaining = remaining.slice(pf.length);
+  }
+  const suffixes = bpeFragments.filter(([f]) => remaining.endsWith(f) && f.length > 1 && f !== remaining);
+  if (suffixes.length > 0 && remaining.length > 3) {
+    const [sf, sid] = suffixes.sort((a,b) => b[0].length - a[0].length)[0];
+    const stem = remaining.slice(0, remaining.length - sf.length);
+    if (stem.length > 0) {
+      const stemId = Math.abs(stem.split('').reduce((h,c) => (h*31 + c.charCodeAt(0)) & 0xFFFF, 5381));
+      result.push([stem, 1000 + (stemId % 40000)]);
+    }
+    result.push([sf, sid]);
+  } else if (remaining.length > 0) {
+    const stemId = Math.abs(remaining.split('').reduce((h,c) => (h*31 + c.charCodeAt(0)) & 0xFFFF, 5381));
+    result.push([remaining, 1000 + (stemId % 40000)]);
+  }
+  return result.length > 0 ? result : [[word, 1000 + (word.charCodeAt(0) * 37) % 40000]];
+}
 const colors = ["tok-color-0","tok-color-1","tok-color-2","tok-color-3","tok-color-4"];
+
+const DEFAULT_TOKEN_WORD = 'tokenization';
+
+function setAnnotations(show) {
+  document.getElementById('tok-ann-subwords').classList.toggle('hidden', !show);
+  document.getElementById('tok-ann-ids').classList.toggle('hidden', !show);
+}
 
 function tokenize() {
   const val = document.getElementById('tokenInput').value.trim().toLowerCase();
@@ -1113,11 +1229,17 @@ function tokenize() {
   out.innerHTML = '';
   if (!val) return;
 
+  const isDefault = val === DEFAULT_TOKEN_WORD;
+  setAnnotations(isDefault);
+
   let toks;
-  if (tokenMap[val]) {
+  const words = val.split(/\s+/);
+  if (words.length === 1 && tokenMap[val]) {
     toks = tokenMap[val];
+  } else if (words.length > 1) {
+    toks = words.flatMap(w => tokenMap[w] ? tokenMap[w] : bpeSplit(w));
   } else {
-    toks = val.split(/\s+/).map((w, i) => [w, 1000 + i * 37]);
+    toks = bpeSplit(val);
   }
 
   toks.forEach((t, i) => {
@@ -1128,27 +1250,31 @@ function tokenize() {
     out.appendChild(badge);
   });
 
-  stats.innerHTML = `<span>tokens: <strong>${toks.length}</strong></span><span>chars/token: <strong>${(val.length / toks.length).toFixed(1)}</strong></span>`;
+  stats.innerHTML = `<span>tokens: <strong>${toks.length}</strong></span><span>chars/token: <strong>${(val.replace(/\s/g,'').length / toks.length).toFixed(1)}</strong></span>`;
 }
 
 document.getElementById('tokenInput').addEventListener('keydown', e => { if (e.key === 'Enter') tokenize(); });
+document.getElementById('tokenInput').addEventListener('input', e => {
+  const val = e.target.value.trim().toLowerCase();
+  if (val !== DEFAULT_TOKEN_WORD) setAnnotations(false);
+});
 tokenize();
 
 /* ── EMBEDDING SCATTER ─────────────────────────────────── */
 const embedWords = [
-  {w:"cat",    x:0.12, y:0.20, c:"var(--blue)"},
-  {w:"dog",    x:0.18, y:0.28, c:"var(--blue)"},
-  {w:"bird",   x:0.08, y:0.38, c:"var(--blue)"},
-  {w:"fish",   x:0.22, y:0.15, c:"var(--blue)"},
+  {w:"cat",    x:0.12, y:0.20, c:"var(--indigo)"},
+  {w:"dog",    x:0.18, y:0.28, c:"var(--indigo)"},
+  {w:"bird",   x:0.08, y:0.38, c:"var(--indigo)"},
+  {w:"fish",   x:0.22, y:0.15, c:"var(--indigo)"},
   {w:"Paris",  x:0.72, y:0.18, c:"var(--orange)"},
   {w:"London", x:0.80, y:0.28, c:"var(--orange)"},
   {w:"Tokyo",  x:0.68, y:0.32, c:"var(--orange)"},
   {w:"run",    x:0.50, y:0.72, c:"var(--cyan)"},
   {w:"jump",   x:0.58, y:0.68, c:"var(--cyan)"},
   {w:"swim",   x:0.44, y:0.80, c:"var(--cyan)"},
-  {w:"joy",    x:0.82, y:0.72, c:"var(--peach)"},
-  {w:"sad",    x:0.90, y:0.62, c:"var(--peach)"},
-  {w:"anger",  x:0.86, y:0.80, c:"var(--peach)"},
+  {w:"joy",    x:0.82, y:0.72, c:"var(--yellow)"},
+  {w:"sad",    x:0.90, y:0.62, c:"var(--yellow)"},
+  {w:"anger",  x:0.86, y:0.80, c:"var(--yellow)"},
 ];
 
 function drawEmbed() {
@@ -1163,19 +1289,38 @@ function drawEmbed() {
   ctx.scale(devicePixelRatio, devicePixelRatio);
   ctx.clearRect(0, 0, W, H);
 
+  const colorMap = {
+    'var(--blue)':   '#5ba8e8',
+    'var(--indigo)': '#4f53e8',
+    'var(--orange)': '#e98d37',
+    'var(--cyan)':   '#3dd6d2',
+    'var(--yellow)':  '#d6d217',
+  };
+
   const pad = 32;
   embedWords.forEach(pt => {
     const px = pad + pt.x * (W - pad*2);
     const py = pad + pt.y * (H - pad*2);
+    const col = colorMap[pt.c] || pt.c;
+
     ctx.beginPath();
-    ctx.arc(px, py, 5, 0, Math.PI*2);
-    ctx.fillStyle = pt.c;
-    ctx.fill();
-    ctx.font = '12px DM Mono, monospace';
-    ctx.fillStyle = pt.c;
-    ctx.globalAlpha = 0.9;
-    ctx.fillText(pt.w, px + 8, py + 4);
+    ctx.arc(px, py, 6, 0, Math.PI*2);
+    ctx.fillStyle = col;
     ctx.globalAlpha = 1;
+    ctx.fill();
+
+    const label = pt.w;
+    ctx.font = '500 13px "DM Mono", monospace';
+    const tw = ctx.measureText(label).width;
+    const lx = px + 10;
+    const ly = py + 4;
+
+    ctx.fillStyle = 'rgba(6,6,14,0.75)';
+    ctx.fillRect(lx - 2, ly - 12, tw + 6, 17);
+
+    ctx.fillStyle = col;
+    ctx.globalAlpha = 1;
+    ctx.fillText(label, lx, ly);
   });
 }
 window.addEventListener('load', drawEmbed);
@@ -1192,7 +1337,7 @@ const attnData = {
 };
 const attnInterps = {
   "The":   "\"The\" distributes attention broadly, leaning on \"was\" to identify the predicate structure of the sentence.",
-  "river": "\"river\" attends strongly to \"bank\" — their co-occurrence signals that \"bank\" means a riverbank, not a financial institution.",
+  "river": "\"river\" attends strongly to \"bank\" - their co-occurrence signals that \"bank\" means a riverbank, not a financial institution.",
   "bank":  "\"bank\" borrows most from \"river\" to disambiguate its meaning, then checks \"steep\" to understand how it's being described.",
   "was":   "\"was\" is the main verb, so it attends across the whole sequence to understand its subject and complement.",
   "steep": "\"steep\" looks back at \"bank\" and \"river\" to know exactly what it is modifying.",
@@ -1243,7 +1388,7 @@ function drawArcs(activeTok, weights) {
   const pad = 40;
   const step = (W - pad*2) / (n-1);
   const xs = attnSentence.map((_,i) => pad + i*step);
-  const yi = 80;
+  const yi = 100;
   svg.innerHTML = '';
 
   const fromIdx = attnSentence.indexOf(activeTok);
@@ -1257,7 +1402,7 @@ function drawArcs(activeTok, weights) {
     const x1 = xs[fromIdx], x2 = xs[i];
     const mid = (x1+x2)/2;
     const dist = Math.abs(x2-x1);
-    const cy = yi - dist*0.55;
+    const cy = Math.max(yi - 120, yi - dist * (2/3));
     const path = document.createElementNS('http://www.w3.org/2000/svg','path');
     path.setAttribute('d',`M${x1} ${yi} Q${mid} ${cy} ${x2} ${yi}`);
     path.setAttribute('fill','none');
@@ -1283,7 +1428,7 @@ function drawArcs(activeTok, weights) {
 buildAttnUI();
 
 /* ── GENERATION DEMO ───────────────────────────────────── */
-const genTokens = [" the"," 2017"," paper",` "Attention`," Is"," All"," You"," Need"," —"," a"," landmark"," work"," that"," changed"," deep"," learning."];
+const genTokens = [" the"," 2017"," paper",' "Attention'," Is"," All"," You"," Need",'",'," a"," landmark"," work"," that"," changed"," deep"," learning."];
 let genIdx = 0;
 let genTimer = null;
 const genOut = document.getElementById('genOutputText');
