@@ -1,0 +1,1344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>How LLMs Work</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ── TOKENS ─────────────────────────────────────────────── */
+:root {
+  --blue:      #177bd6;
+  --indigo:    #171cd6;
+  --cyan:      #17d6d2;
+  --orange:    #d67317;
+  --peach:     #e98d37;
+  --bg:        #06060e;
+  --surface:   #0d0d1e;
+  --surface2:  #12122a;
+  --text:      #e8e8f0;
+  --muted:     #7070a0;
+  --border:    rgba(23,123,214,0.18);
+  --r:         10px;
+  --r-lg:      18px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Outfit', sans-serif;
+  font-size: 17px;
+  line-height: 1.7;
+  overflow-x: hidden;
+}
+
+/* ── TYPOGRAPHY ─────────────────────────────────────────── */
+h1, h2, h3 { font-family: 'DM Serif Display', serif; font-weight: 400; line-height: 1.15; }
+h1 { font-size: clamp(3rem, 8vw, 6.5rem); }
+h2 { font-size: clamp(2rem, 5vw, 3.5rem); }
+h3 { font-size: clamp(1.3rem, 3vw, 1.9rem); }
+code, .mono { font-family: 'DM Mono', monospace; font-size: 0.85em; }
+
+p { color: var(--muted); max-width: 62ch; }
+p strong { color: var(--text); font-weight: 500; }
+
+/* ── LAYOUT ─────────────────────────────────────────────── */
+section {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 7rem clamp(1.5rem, 6vw, 7rem);
+  position: relative;
+  overflow: hidden;
+}
+
+.section-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--blue);
+  margin-bottom: 1.2rem;
+}
+
+/* ── SCROLL REVEAL ──────────────────────────────────────── */
+.reveal {
+  opacity: 0;
+  transform: translateY(36px);
+  transition: opacity 0.7s cubic-bezier(.22,1,.36,1), transform 0.7s cubic-bezier(.22,1,.36,1);
+}
+.reveal.visible { opacity: 1; transform: none; }
+.reveal-delay-1 { transition-delay: 0.1s; }
+.reveal-delay-2 { transition-delay: 0.22s; }
+.reveal-delay-3 { transition-delay: 0.36s; }
+.reveal-delay-4 { transition-delay: 0.52s; }
+
+/* ── NAV ────────────────────────────────────────────────── */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.2rem clamp(1.5rem, 6vw, 7rem);
+  background: rgba(6,6,14,0.85);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+}
+.nav-logo { font-family: 'DM Serif Display', serif; font-size: 1.1rem; color: var(--text); }
+.nav-links { display: flex; gap: 2rem; list-style: none; }
+.nav-links a { color: var(--muted); text-decoration: none; font-size: 0.85rem; font-family: 'DM Mono', monospace; transition: color 0.2s; }
+.nav-links a:hover { color: var(--blue); }
+.nav-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--muted);
+  transition: background 0.3s, box-shadow 0.3s;
+}
+.nav-dot.active { background: var(--blue); box-shadow: 0 0 8px var(--blue); }
+
+/* ── HERO ───────────────────────────────────────────────── */
+#hero {
+  min-height: 100vh;
+  justify-content: center;
+  align-items: flex-start;
+  background: var(--bg);
+}
+
+.hero-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+  align-items: center;
+  width: 100%;
+  max-width: 1400px;
+}
+
+.hero-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(23,123,214,0.1);
+  border: 1px solid rgba(23,123,214,0.3);
+  border-radius: 99px;
+  padding: 0.3rem 0.9rem;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.15em;
+  color: var(--blue);
+  margin-bottom: 1.5rem;
+}
+.hero-eyebrow::before {
+  content: '';
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--cyan);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%,100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.hero-title em { font-style: italic; color: var(--blue); }
+
+.hero-subtitle {
+  margin-top: 1.5rem;
+  font-size: 1.1rem;
+  color: var(--muted);
+  max-width: 50ch;
+}
+
+.hero-cta {
+  margin-top: 2.5rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: var(--blue);
+  color: #fff;
+  text-decoration: none;
+  padding: 0.75rem 1.8rem;
+  border-radius: 99px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: background 0.2s, transform 0.2s;
+}
+.hero-cta:hover { background: #1a8ae8; transform: translateY(-2px); }
+
+/* Hero token stream */
+.hero-visual { position: relative; height: 420px; }
+
+.token-stream {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow: hidden;
+  mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%);
+}
+
+.token-row {
+  display: flex;
+  gap: 8px;
+  animation: scroll-row 18s linear infinite;
+  white-space: nowrap;
+}
+.token-row:nth-child(even) { animation-direction: reverse; animation-duration: 22s; }
+.token-row:nth-child(3) { animation-duration: 15s; }
+
+@keyframes scroll-row {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+.token-chip {
+  flex-shrink: 0;
+  padding: 5px 12px;
+  border-radius: 6px;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.78rem;
+  border: 1px solid;
+  transition: none;
+}
+.tc-blue  { background: rgba(23,123,214,0.08); border-color: rgba(23,123,214,0.3); color: #5ba8e8; }
+.tc-indigo{ background: rgba(23,28,214,0.08);  border-color: rgba(23,28,214,0.4);  color: #7b7ef0; }
+.tc-cyan  { background: rgba(23,214,210,0.06); border-color: rgba(23,214,210,0.25);color: #3dd6d2; }
+.tc-orange{ background: rgba(214,115,23,0.08); border-color: rgba(214,115,23,0.3); color: #e98d37; }
+
+/* ── SECTION 1: TOKENIZATION ────────────────────────────── */
+#tokenization { background: var(--surface); }
+
+.token-demo {
+  margin-top: 2.5rem;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 2rem;
+  max-width: 700px;
+}
+
+.token-input-row {
+  display: flex;
+  gap: 0.8rem;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.token-input {
+  flex: 1;
+  background: rgba(23,123,214,0.06);
+  border: 1px solid rgba(23,123,214,0.25);
+  border-radius: var(--r);
+  padding: 0.65rem 1rem;
+  color: var(--text);
+  font-family: 'DM Mono', monospace;
+  font-size: 0.9rem;
+  outline: none;
+}
+.token-input:focus { border-color: var(--blue); }
+
+.token-btn {
+  background: var(--blue);
+  color: #fff;
+  border: none;
+  border-radius: var(--r);
+  padding: 0.65rem 1.2rem;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-family: 'Outfit', sans-serif;
+  transition: background 0.2s;
+}
+.token-btn:hover { background: #1a8ae8; }
+
+.token-output {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-height: 48px;
+}
+
+.tok-badge {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.tok-badge span:first-child {
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.82rem;
+  border: 1px solid;
+  animation: pop-in 0.3s cubic-bezier(.34,1.56,.64,1) both;
+}
+.tok-badge span:last-child {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--muted);
+}
+
+@keyframes pop-in {
+  from { opacity:0; transform:scale(0.7); }
+  to   { opacity:1; transform:scale(1); }
+}
+
+.tok-color-0 { background:rgba(23,123,214,0.12); border-color:rgba(23,123,214,0.4)!important; color:#5ba8e8; }
+.tok-color-1 { background:rgba(23,28,214,0.12);  border-color:rgba(23,28,214,0.5)!important;  color:#7b7ef0; }
+.tok-color-2 { background:rgba(23,214,210,0.1);  border-color:rgba(23,214,210,0.35)!important;color:#3dd6d2; }
+.tok-color-3 { background:rgba(214,115,23,0.1);  border-color:rgba(214,115,23,0.4)!important; color:#e98d37; }
+.tok-color-4 { background:rgba(23,123,214,0.08); border-color:rgba(23,123,214,0.25)!important;color:#8ab8e0; }
+
+.token-stats {
+  margin-top: 1rem;
+  display: flex;
+  gap: 1.5rem;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+.token-stats strong { color: var(--blue); }
+
+/* ── SECTION 2: EMBEDDING ───────────────────────────────── */
+#embedding { background: var(--bg); }
+
+.embedding-visual {
+  margin-top: 2.5rem;
+  position: relative;
+  height: 340px;
+  max-width: 700px;
+}
+
+.embed-canvas { width: 100%; height: 100%; }
+
+.embed-legend {
+  margin-top: 1rem;
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+.embed-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  font-family: 'DM Mono', monospace;
+  color: var(--muted);
+}
+.embed-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+}
+
+/* ── SECTION 3: ARCHITECTURE ────────────────────────────── */
+#architecture {
+  background: var(--surface);
+}
+
+.arch-diagram {
+  margin-top: 2.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  max-width: 560px;
+}
+
+.arch-layer {
+  width: 100%;
+  padding: 1rem 1.5rem;
+  border-radius: var(--r);
+  border: 1px solid;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  position: relative;
+}
+.arch-layer:hover { transform: translateX(6px); }
+
+.arch-layer.blue  { background:rgba(23,123,214,0.08); border-color:rgba(23,123,214,0.35); }
+.arch-layer.indigo{ background:rgba(23,28,214,0.08);  border-color:rgba(23,28,214,0.45);  }
+.arch-layer.cyan  { background:rgba(23,214,210,0.07); border-color:rgba(23,214,210,0.3);  }
+.arch-layer.orange{ background:rgba(214,115,23,0.08); border-color:rgba(214,115,23,0.35); }
+.arch-layer.green { background:rgba(23,214,100,0.07); border-color:rgba(23,214,100,0.3);  }
+
+.arch-layer-title {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--text);
+}
+.arch-layer-sub {
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin-top: 0.2rem;
+}
+
+.arch-arrow {
+  width: 1px;
+  height: 22px;
+  background: linear-gradient(to bottom, rgba(23,123,214,0.6), rgba(23,123,214,0.2));
+  position: relative;
+  align-self: center;
+}
+.arch-arrow::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 50%;
+  transform: translateX(-50%);
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 7px solid rgba(23,123,214,0.5);
+}
+
+.arch-repeat-badge {
+  position: absolute;
+  right: -80px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--blue);
+  border: 1px solid rgba(23,123,214,0.3);
+  padding: 2px 8px;
+  border-radius: 99px;
+  white-space: nowrap;
+}
+
+.arch-tooltip {
+  display: none;
+  position: absolute;
+  left: calc(100% + 16px);
+  top: 0;
+  width: 220px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 0.9rem 1rem;
+  font-size: 0.78rem;
+  color: var(--muted);
+  line-height: 1.6;
+  z-index: 10;
+  pointer-events: none;
+}
+.arch-layer:hover .arch-tooltip { display: block; }
+
+/* ── SECTION 4: ATTENTION ───────────────────────────────── */
+#attention { background: var(--bg); }
+
+.attention-demo {
+  margin-top: 2.5rem;
+  max-width: 700px;
+}
+
+.attn-sentence {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 1.5rem;
+}
+
+.attn-tok {
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.9rem;
+  border: 1px solid rgba(23,123,214,0.2);
+  background: var(--surface2);
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.attn-tok:hover { border-color: rgba(23,123,214,0.5); color: var(--text); }
+.attn-tok.selected {
+  background: rgba(23,123,214,0.15);
+  border-color: var(--blue);
+  color: #5ba8e8;
+}
+.attn-tok.lit {
+  border-color: var(--orange);
+  background: rgba(214,115,23,0.12);
+  color: var(--peach);
+}
+
+.attn-arc-svg {
+  width: 100%;
+  height: 100px;
+  display: block;
+  margin-bottom: 1rem;
+}
+
+.attn-weights {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.attn-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.82rem;
+}
+.attn-row-label {
+  font-family: 'DM Mono', monospace;
+  width: 64px;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+.attn-bar-wrap {
+  flex: 1;
+  height: 6px;
+  background: rgba(23,123,214,0.1);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.attn-bar {
+  height: 100%;
+  border-radius: 3px;
+  background: var(--blue);
+  transition: width 0.5s cubic-bezier(.22,1,.36,1);
+}
+.attn-pct {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--muted);
+  min-width: 36px;
+  text-align: right;
+}
+
+.attn-interp {
+  margin-top: 1.2rem;
+  padding: 0.9rem 1.1rem;
+  background: rgba(214,115,23,0.07);
+  border: 1px solid rgba(214,115,23,0.2);
+  border-radius: var(--r);
+  font-size: 0.85rem;
+  color: #c9843a;
+  line-height: 1.6;
+  min-height: 60px;
+}
+
+/* ── SECTION 5: FORWARD PASS / GENERATION ──────────────── */
+#generation { background: var(--surface); }
+
+.gen-demo {
+  margin-top: 2rem;
+  max-width: 680px;
+}
+
+.gen-prompt {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg) var(--r-lg) 0 0;
+  padding: 1.2rem 1.5rem;
+}
+.gen-prompt-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
+  color: var(--blue);
+  margin-bottom: 0.4rem;
+}
+.gen-prompt-text {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.9rem;
+  color: var(--text);
+}
+
+.gen-output {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-top: none;
+  border-radius: 0 0 var(--r-lg) var(--r-lg);
+  padding: 1.2rem 1.5rem;
+  min-height: 80px;
+}
+.gen-output-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
+  color: var(--orange);
+  margin-bottom: 0.4rem;
+}
+.gen-output-text {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.9rem;
+  color: var(--text);
+  min-height: 1.4em;
+}
+.gen-cursor {
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  background: var(--orange);
+  margin-left: 1px;
+  animation: blink 1s step-end infinite;
+  vertical-align: text-bottom;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+.gen-controls {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+  align-items: center;
+}
+.gen-btn {
+  padding: 0.55rem 1.2rem;
+  border-radius: 99px;
+  border: 1px solid rgba(23,123,214,0.4);
+  background: transparent;
+  color: var(--blue);
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+.gen-btn:hover { background: rgba(23,123,214,0.12); }
+.gen-btn.primary { background: var(--blue); color: #fff; border-color: var(--blue); }
+.gen-btn.primary:hover { background: #1a8ae8; }
+
+.gen-speed-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+/* ── SECTION 6: TRAINING ────────────────────────────────── */
+#training { background: var(--bg); }
+
+.training-loop {
+  margin-top: 2.5rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  max-width: 760px;
+}
+
+.train-step {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 1.3rem 1.5rem;
+  position: relative;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+.train-step.active-step {
+  border-color: var(--blue);
+  box-shadow: 0 0 20px rgba(23,123,214,0.15);
+}
+.train-step-num {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--blue);
+  margin-bottom: 0.3rem;
+}
+.train-step-title {
+  font-weight: 500;
+  font-size: 0.95rem;
+  color: var(--text);
+  margin-bottom: 0.3rem;
+}
+.train-step-desc {
+  font-size: 0.8rem;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.loss-chart-wrap {
+  grid-column: 1 / -1;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 1.5rem;
+}
+.loss-chart-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem;
+  color: var(--muted);
+  margin-bottom: 0.8rem;
+  letter-spacing: 0.1em;
+}
+.loss-svg { width: 100%; height: 120px; display: block; }
+
+/* ── SECTION 7: QKV MATH ────────────────────────────────── */
+#qkv { background: var(--surface); }
+
+.qkv-visual {
+  margin-top: 2rem;
+  max-width: 680px;
+}
+
+.qkv-step {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+  padding: 1.2rem 1.4rem;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  transition: border-color 0.3s;
+}
+.qkv-step:hover { border-color: rgba(23,123,214,0.4); }
+
+.qkv-step-num {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: rgba(23,123,214,0.15);
+  border: 1px solid rgba(23,123,214,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--blue);
+  flex-shrink: 0;
+}
+
+.qkv-step-content {}
+.qkv-step-title {
+  font-weight: 500;
+  font-size: 0.9rem;
+  color: var(--text);
+  margin-bottom: 0.3rem;
+}
+.qkv-step-formula {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.82rem;
+  color: var(--cyan);
+  background: rgba(23,214,210,0.06);
+  padding: 3px 8px;
+  border-radius: 4px;
+  display: inline-block;
+  margin-bottom: 0.4rem;
+}
+.qkv-step-desc { font-size: 0.8rem; color: var(--muted); line-height: 1.55; }
+
+/* ── SECTION 8: RLHF ────────────────────────────────────── */
+#rlhf { background: var(--bg); }
+
+.rlhf-flow {
+  margin-top: 2.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  max-width: 500px;
+}
+.rlhf-node {
+  padding: 1rem 1.4rem;
+  border-radius: var(--r);
+  border: 1px solid;
+  position: relative;
+}
+.rlhf-node.n-blue   { background:rgba(23,123,214,0.08); border-color:rgba(23,123,214,0.35); }
+.rlhf-node.n-orange { background:rgba(214,115,23,0.08); border-color:rgba(214,115,23,0.35); }
+.rlhf-node.n-cyan   { background:rgba(23,214,210,0.07); border-color:rgba(23,214,210,0.3); }
+.rlhf-node.n-peach  { background:rgba(233,141,55,0.08); border-color:rgba(233,141,55,0.3); }
+
+.rlhf-title { font-family:'DM Mono',monospace; font-size:0.82rem; font-weight:500; color:var(--text); }
+.rlhf-desc  { font-size:0.78rem; color:var(--muted); margin-top:0.2rem; }
+
+.rlhf-arrow {
+  align-self: center;
+  width: 1px; height: 20px;
+  background: rgba(23,123,214,0.4);
+  position: relative;
+}
+.rlhf-arrow::after {
+  content:'';
+  position:absolute;
+  bottom:0; left:50%;
+  transform:translateX(-50%);
+  border-left:4px solid transparent;
+  border-right:4px solid transparent;
+  border-top:6px solid rgba(23,123,214,0.4);
+}
+
+/* ── FOOTER ─────────────────────────────────────────────── */
+footer {
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  padding: 3rem clamp(1.5rem, 6vw, 7rem);
+  text-align: center;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+footer span { color: var(--blue); }
+
+/* ── DECORATIVE ─────────────────────────────────────────── */
+.glow-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  pointer-events: none;
+  opacity: 0.12;
+}
+
+/* ── RESPONSIVE ─────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .hero-grid { grid-template-columns: 1fr; }
+  .hero-visual { display: none; }
+  .training-loop { grid-template-columns: 1fr; }
+  .arch-tooltip { display: none !important; }
+  .arch-repeat-badge { right: -70px; font-size: 0.62rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">LLMs</div>
+  <ul class="nav-links">
+    <li><a href="#tokenization">tokens</a></li>
+    <li><a href="#embedding">embed</a></li>
+    <li><a href="#architecture">arch</a></li>
+    <li><a href="#attention">attention</a></li>
+    <li><a href="#generation">generate</a></li>
+    <li><a href="#training">train</a></li>
+  </ul>
+</nav>
+
+<!-- ── HERO ───────────────────────────────────────────── -->
+<section id="hero">
+  <div class="glow-orb" style="width:600px;height:600px;background:var(--blue);top:-200px;left:-100px;"></div>
+  <div class="glow-orb" style="width:400px;height:400px;background:var(--indigo);bottom:-100px;right:0;"></div>
+
+  <div class="hero-grid">
+    <div>
+      <div class="hero-eyebrow reveal">AN INTERACTIVE EXPLAINER</div>
+      <h1 class="reveal reveal-delay-1">How <em>LLMs</em><br>actually work</h1>
+      <p class="hero-subtitle reveal reveal-delay-2">From raw text to generated language — a visual walkthrough of every step inside a large language model.</p>
+      <a href="#tokenization" class="hero-cta reveal reveal-delay-3">
+        Start exploring
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 7h8M8 4l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+    </div>
+
+    <div class="hero-visual reveal reveal-delay-2">
+      <div class="token-stream" id="tokenStream"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 1. TOKENIZATION ────────────────────────────────── -->
+<section id="tokenization">
+  <div class="glow-orb" style="width:500px;height:500px;background:var(--blue);top:-100px;right:-150px;"></div>
+  <div class="section-label reveal">01 — Tokenization</div>
+  <h2 class="reveal reveal-delay-1">Text gets broken<br>into <em style="color:var(--blue);font-style:italic">tokens</em></h2>
+  <p class="reveal reveal-delay-2" style="margin-top:1rem">Before anything else, your text is split into subword chunks called tokens. The model never sees raw characters — it sees a sequence of integer IDs, each representing a token from a fixed vocabulary of ~50,000 entries.</p>
+
+  <div class="token-demo reveal reveal-delay-3">
+    <div class="token-input-row">
+      <input class="token-input" id="tokenInput" type="text" value="unhappiness" placeholder="Type anything...">
+      <button class="token-btn" onclick="tokenize()">Tokenize</button>
+    </div>
+    <div class="token-output" id="tokenOutput"></div>
+    <div class="token-stats" id="tokenStats"></div>
+  </div>
+</section>
+
+<!-- ── 2. EMBEDDING ───────────────────────────────────── -->
+<section id="embedding">
+  <div class="glow-orb" style="width:400px;height:400px;background:var(--indigo);bottom:-80px;left:-80px;"></div>
+  <div class="section-label reveal">02 — Embedding</div>
+  <h2 class="reveal reveal-delay-1">Token IDs become<br><em style="color:var(--indigo);font-style:italic">dense vectors</em></h2>
+  <p class="reveal reveal-delay-2" style="margin-top:1rem">Each token ID is looked up in a giant table to produce a vector of floats — typically thousands of dimensions. Semantically similar words land near each other. This is where meaning first enters the model.</p>
+
+  <div class="embedding-visual reveal reveal-delay-3">
+    <canvas class="embed-canvas" id="embedCanvas"></canvas>
+  </div>
+  <div class="embed-legend reveal reveal-delay-4">
+    <div class="embed-legend-item"><div class="embed-dot" style="background:var(--blue)"></div>animals</div>
+    <div class="embed-legend-item"><div class="embed-dot" style="background:var(--orange)"></div>places</div>
+    <div class="embed-legend-item"><div class="embed-dot" style="background:var(--cyan)"></div>verbs</div>
+    <div class="embed-legend-item"><div class="embed-dot" style="background:var(--peach)"></div>emotions</div>
+  </div>
+</section>
+
+<!-- ── 3. ARCHITECTURE ────────────────────────────────── -->
+<section id="architecture">
+  <div class="glow-orb" style="width:450px;height:450px;background:var(--cyan);top:-100px;left:-100px;opacity:0.07;"></div>
+  <div class="section-label reveal">03 — Architecture</div>
+  <h2 class="reveal reveal-delay-1">Stacked <em style="color:var(--cyan);font-style:italic">transformer</em><br>layers</h2>
+  <p class="reveal reveal-delay-2" style="margin-top:1rem">The embedded vectors pass through N transformer layers, each refining the representation. Hover any layer to see what it does.</p>
+
+  <div class="arch-diagram reveal reveal-delay-3">
+    <div class="arch-layer green">
+      <div class="arch-layer-title">Input tokens</div>
+      <div class="arch-layer-sub">Raw text → token IDs</div>
+      <div class="arch-tooltip">Your prompt as a sequence of integers. "The cat" might be [464, 3797].</div>
+    </div>
+    <div class="arch-arrow"></div>
+    <div class="arch-layer cyan">
+      <div class="arch-layer-title">Embedding + positional encoding</div>
+      <div class="arch-layer-sub">IDs → vectors with position info</div>
+      <div class="arch-tooltip">Token IDs become dense vectors. A sine/cosine positional signal is added so the model knows token order.</div>
+    </div>
+    <div class="arch-arrow"></div>
+    <div class="arch-layer blue" style="position:relative">
+      <div class="arch-layer-title">Transformer block × N</div>
+      <div class="arch-layer-sub">Self-attention + feed-forward + layer norm</div>
+      <div class="arch-repeat-badge">× 32–128 layers</div>
+      <div class="arch-tooltip">Each block runs attention (tokens look at each other) then a feed-forward network. This is where reasoning happens.</div>
+    </div>
+    <div class="arch-arrow"></div>
+    <div class="arch-layer indigo">
+      <div class="arch-layer-title">Output projection</div>
+      <div class="arch-layer-sub">Final vector → vocab logits</div>
+      <div class="arch-tooltip">The last token's vector gets multiplied by a weight matrix to produce one score per vocabulary entry.</div>
+    </div>
+    <div class="arch-arrow"></div>
+    <div class="arch-layer orange">
+      <div class="arch-layer-title">Softmax → sample</div>
+      <div class="arch-layer-sub">Scores → probabilities → next token</div>
+      <div class="arch-tooltip">Softmax converts raw scores into probabilities summing to 1. The model samples from this distribution to pick the next token.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 4. ATTENTION ───────────────────────────────────── -->
+<section id="attention">
+  <div class="glow-orb" style="width:500px;height:500px;background:var(--orange);bottom:-150px;right:-100px;opacity:0.08;"></div>
+  <div class="section-label reveal">04 — Self-Attention</div>
+  <h2 class="reveal reveal-delay-1">Tokens <em style="color:var(--orange);font-style:italic">attend</em><br>to each other</h2>
+  <p class="reveal reveal-delay-2" style="margin-top:1rem">Every token looks at every other token and decides how much to "borrow" from them. Click a token to see where its attention focuses.</p>
+
+  <div class="attention-demo reveal reveal-delay-3">
+    <div class="attn-sentence" id="attnSentence"></div>
+    <svg class="attn-arc-svg" id="attnArcs"></svg>
+    <div class="attn-weights" id="attnWeights"></div>
+    <div class="attn-interp" id="attnInterp">Select a token above to see its attention pattern.</div>
+  </div>
+</section>
+
+<!-- ── 5. GENERATION ──────────────────────────────────── -->
+<section id="generation">
+  <div class="glow-orb" style="width:400px;height:400px;background:var(--blue);top:-80px;right:-80px;"></div>
+  <div class="section-label reveal">05 — Generation</div>
+  <h2 class="reveal reveal-delay-1">One token<br><em style="color:var(--blue);font-style:italic">at a time</em></h2>
+  <p class="reveal reveal-delay-2" style="margin-top:1rem">The model generates text autoregressively — it produces one token, appends it to the input, then runs the whole forward pass again. Every token is a fresh prediction.</p>
+
+  <div class="gen-demo reveal reveal-delay-3">
+    <div class="gen-prompt">
+      <div class="gen-prompt-label">PROMPT</div>
+      <div class="gen-prompt-text" id="genPromptText">The transformer architecture was first introduced in</div>
+    </div>
+    <div class="gen-output">
+      <div class="gen-output-label">COMPLETION</div>
+      <div class="gen-output-text" id="genOutputText"><span class="gen-cursor"></span></div>
+    </div>
+    <div class="gen-controls">
+      <button class="gen-btn primary" onclick="startGeneration()">Generate</button>
+      <button class="gen-btn" onclick="resetGeneration()">Reset</button>
+      <span class="gen-speed-label">token by token</span>
+    </div>
+  </div>
+</section>
+
+<!-- ── 6. TRAINING ────────────────────────────────────── -->
+<section id="training">
+  <div class="glow-orb" style="width:500px;height:500px;background:var(--indigo);bottom:-100px;left:-100px;"></div>
+  <div class="section-label reveal">06 — Training</div>
+  <h2 class="reveal reveal-delay-1">Learning from<br><em style="color:var(--indigo);font-style:italic">prediction error</em></h2>
+  <p class="reveal reveal-delay-2" style="margin-top:1rem">The model trains by repeatedly predicting the next token, measuring how wrong it was, and nudging billions of weights to do better. This loop runs across trillions of tokens.</p>
+
+  <div class="training-loop reveal reveal-delay-3">
+    <div class="train-step" id="ts-0">
+      <div class="train-step-num">01</div>
+      <div class="train-step-title">Forward pass</div>
+      <div class="train-step-desc">Input runs through every layer. Each token gets a probability distribution over the vocabulary.</div>
+    </div>
+    <div class="train-step" id="ts-1">
+      <div class="train-step-num">02</div>
+      <div class="train-step-title">Loss calculation</div>
+      <div class="train-step-desc">Cross-entropy loss measures how low a probability was assigned to the actual next token.</div>
+    </div>
+    <div class="train-step" id="ts-2">
+      <div class="train-step-num">03</div>
+      <div class="train-step-title">Backpropagation</div>
+      <div class="train-step-desc">The chain rule computes each weight's contribution to the error — billions of gradients.</div>
+    </div>
+    <div class="train-step" id="ts-3">
+      <div class="train-step-num">04</div>
+      <div class="train-step-title">Weight update</div>
+      <div class="train-step-desc">Adam optimizer adjusts every weight slightly in the direction that reduces loss.</div>
+    </div>
+    <div class="loss-chart-wrap">
+      <div class="loss-chart-label">TRAINING LOSS OVER TIME</div>
+      <svg class="loss-svg" id="lossSvg" viewBox="0 0 600 120"></svg>
+    </div>
+  </div>
+</section>
+
+<!-- ── 7. QKV MATH ─────────────────────────────────────── -->
+<section id="qkv">
+  <div class="glow-orb" style="width:400px;height:400px;background:var(--cyan);top:-80px;right:-80px;opacity:0.08;"></div>
+  <div class="section-label reveal">07 — Q, K, V</div>
+  <h2 class="reveal reveal-delay-1">The mechanics<br>of <em style="color:var(--cyan);font-style:italic">attention</em></h2>
+  <p class="reveal reveal-delay-2" style="margin-top:1rem">Every token produces three vectors via learned weight matrices. Their interaction determines how meaning flows across the sequence.</p>
+
+  <div class="qkv-visual reveal reveal-delay-3">
+    <div class="qkv-step">
+      <div class="qkv-step-num">1</div>
+      <div class="qkv-step-content">
+        <div class="qkv-step-title">Produce Q, K, V</div>
+        <div class="qkv-step-formula">Q = x·Wq &nbsp; K = x·Wk &nbsp; V = x·Wv</div>
+        <div class="qkv-step-desc">Each token's embedding x is multiplied by three separate learned matrices. Q asks "what am I looking for?", K says "what do I offer?", V says "here's what I'll contribute."</div>
+      </div>
+    </div>
+    <div class="qkv-step">
+      <div class="qkv-step-num">2</div>
+      <div class="qkv-step-content">
+        <div class="qkv-step-title">Compute attention scores</div>
+        <div class="qkv-step-formula">score(i,j) = Qᵢ · Kⱼ / √d</div>
+        <div class="qkv-step-desc">The dot product of token i's Query with token j's Key gives a raw score. Dividing by √d (dimension) keeps gradients stable.</div>
+      </div>
+    </div>
+    <div class="qkv-step">
+      <div class="qkv-step-num">3</div>
+      <div class="qkv-step-content">
+        <div class="qkv-step-title">Normalize with softmax</div>
+        <div class="qkv-step-formula">αᵢⱼ = softmax(scoreᵢⱼ)</div>
+        <div class="qkv-step-desc">Softmax turns the raw scores into weights that sum to 1 — a probability distribution over how much to attend to each token.</div>
+      </div>
+    </div>
+    <div class="qkv-step">
+      <div class="qkv-step-num">4</div>
+      <div class="qkv-step-content">
+        <div class="qkv-step-title">Weighted sum of Values</div>
+        <div class="qkv-step-formula">outputᵢ = Σⱼ αᵢⱼ · Vⱼ</div>
+        <div class="qkv-step-desc">The output for token i is a blend of every token's V, weighted by the attention scores. "bank" borrows heavily from "river" — its output vector is now contextually disambiguated.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 8. RLHF ─────────────────────────────────────────── -->
+<section id="rlhf">
+  <div class="glow-orb" style="width:450px;height:450px;background:var(--orange);top:-100px;left:-100px;opacity:0.08;"></div>
+  <div class="section-label reveal">08 — RLHF</div>
+  <h2 class="reveal reveal-delay-1">Making it<br><em style="color:var(--peach);font-style:italic">helpful</em></h2>
+  <p class="reveal reveal-delay-2" style="margin-top:1rem">A pretrained model is good at predicting text, not following instructions. Reinforcement Learning from Human Feedback fine-tunes it to be genuinely useful — helpful, honest, and safe.</p>
+
+  <div class="rlhf-flow reveal reveal-delay-3">
+    <div class="rlhf-node n-blue">
+      <div class="rlhf-title">Pretrained base model</div>
+      <div class="rlhf-desc">Knows language deeply. Will complete any text including harmful ones.</div>
+    </div>
+    <div class="rlhf-arrow"></div>
+    <div class="rlhf-node n-cyan">
+      <div class="rlhf-title">Supervised fine-tuning</div>
+      <div class="rlhf-desc">Train on human-written ideal responses to build an instruction-following baseline.</div>
+    </div>
+    <div class="rlhf-arrow"></div>
+    <div class="rlhf-node n-orange">
+      <div class="rlhf-title">Reward model training</div>
+      <div class="rlhf-desc">Humans rank model outputs. A separate reward model learns to predict human preference.</div>
+    </div>
+    <div class="rlhf-arrow"></div>
+    <div class="rlhf-node n-peach">
+      <div class="rlhf-title">RL fine-tuning (PPO)</div>
+      <div class="rlhf-desc">The policy model is updated to maximize the reward signal — outputs humans prefer score higher.</div>
+    </div>
+    <div class="rlhf-arrow"></div>
+    <div class="rlhf-node n-blue">
+      <div class="rlhf-title">Deployed assistant</div>
+      <div class="rlhf-desc">A model that generates text that is useful, safe, and aligned with human intent.</div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  Built to explain <span>large language models</span> — one scroll at a time.
+</footer>
+
+<script>
+/* ── SCROLL REVEAL ─────────────────────────────────────── */
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.12 });
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+/* ── HERO TOKEN STREAM ─────────────────────────────────── */
+const heroTokens = [
+  ["attention","transformer","token","embedding","weight","gradient","layer","head","query","key","value"],
+  ["backprop","softmax","logit","matrix","vector","dimension","batch","epoch","loss","Adam","RLHF"],
+  ["context","sequence","vocab","mask","norm","residual","FFN","QKV","position","encode","decode"],
+  ["probability","temperature","sample","greedy","beam","top-p","top-k","entropy","perplexity","BPE","GPT"]
+];
+const classes = ["tc-blue","tc-indigo","tc-cyan","tc-orange"];
+const stream = document.getElementById('tokenStream');
+heroTokens.forEach((row, ri) => {
+  const div = document.createElement('div');
+  div.className = 'token-row';
+  const doubled = [...row, ...row];
+  doubled.forEach(t => {
+    const chip = document.createElement('span');
+    chip.className = 'token-chip ' + classes[ri % classes.length];
+    chip.textContent = t;
+    div.appendChild(chip);
+  });
+  stream.appendChild(div);
+});
+
+/* ── TOKENIZER DEMO ────────────────────────────────────── */
+const tokenMap = {
+  "unhappiness":  [["un",3954],["happi",16680],["ness",1108]],
+  "transformer":  [["trans",7645],["former",15380]],
+  "neuroscience": [["neuro",14895],["sci",16192],["ence",594]],
+  "unfortunately":[["unfortunately",23444]],
+  "embedding":    [["embed",20521],["ding",768]],
+  "backpropagation":[["back",1891],["prop",2978],["ag",456],["ation",341]],
+  "artificial":   [["art",472],["ific",3546],["ial",498]],
+  "intelligence": [["intelligence",27286]],
+};
+const colors = ["tok-color-0","tok-color-1","tok-color-2","tok-color-3","tok-color-4"];
+
+function tokenize() {
+  const val = document.getElementById('tokenInput').value.trim().toLowerCase();
+  const out = document.getElementById('tokenOutput');
+  const stats = document.getElementById('tokenStats');
+  out.innerHTML = '';
+  if (!val) return;
+
+  let toks;
+  if (tokenMap[val]) {
+    toks = tokenMap[val];
+  } else {
+    toks = val.split(/\s+/).map((w, i) => [w, 1000 + i * 37]);
+  }
+
+  toks.forEach((t, i) => {
+    const badge = document.createElement('div');
+    badge.className = 'tok-badge';
+    badge.style.animationDelay = (i * 0.07) + 's';
+    badge.innerHTML = `<span class="${colors[i % colors.length]}">${t[0]}</span><span>#${t[1]}</span>`;
+    out.appendChild(badge);
+  });
+
+  stats.innerHTML = `<span>tokens: <strong>${toks.length}</strong></span><span>chars/token: <strong>${(val.length / toks.length).toFixed(1)}</strong></span>`;
+}
+
+document.getElementById('tokenInput').addEventListener('keydown', e => { if (e.key === 'Enter') tokenize(); });
+tokenize();
+
+/* ── EMBEDDING SCATTER ─────────────────────────────────── */
+const embedWords = [
+  {w:"cat",    x:0.12, y:0.20, c:"var(--blue)"},
+  {w:"dog",    x:0.18, y:0.28, c:"var(--blue)"},
+  {w:"bird",   x:0.08, y:0.38, c:"var(--blue)"},
+  {w:"fish",   x:0.22, y:0.15, c:"var(--blue)"},
+  {w:"Paris",  x:0.72, y:0.18, c:"var(--orange)"},
+  {w:"London", x:0.80, y:0.28, c:"var(--orange)"},
+  {w:"Tokyo",  x:0.68, y:0.32, c:"var(--orange)"},
+  {w:"run",    x:0.50, y:0.72, c:"var(--cyan)"},
+  {w:"jump",   x:0.58, y:0.68, c:"var(--cyan)"},
+  {w:"swim",   x:0.44, y:0.80, c:"var(--cyan)"},
+  {w:"joy",    x:0.82, y:0.72, c:"var(--peach)"},
+  {w:"sad",    x:0.90, y:0.62, c:"var(--peach)"},
+  {w:"anger",  x:0.86, y:0.80, c:"var(--peach)"},
+];
+
+function drawEmbed() {
+  const canvas = document.getElementById('embedCanvas');
+  if (!canvas) return;
+  const W = canvas.clientWidth || 680;
+  const H = 320;
+  canvas.width = W * devicePixelRatio;
+  canvas.height = H * devicePixelRatio;
+  canvas.style.height = H + 'px';
+  const ctx = canvas.getContext('2d');
+  ctx.scale(devicePixelRatio, devicePixelRatio);
+  ctx.clearRect(0, 0, W, H);
+
+  const pad = 32;
+  embedWords.forEach(pt => {
+    const px = pad + pt.x * (W - pad*2);
+    const py = pad + pt.y * (H - pad*2);
+    ctx.beginPath();
+    ctx.arc(px, py, 5, 0, Math.PI*2);
+    ctx.fillStyle = pt.c;
+    ctx.fill();
+    ctx.font = '12px DM Mono, monospace';
+    ctx.fillStyle = pt.c;
+    ctx.globalAlpha = 0.9;
+    ctx.fillText(pt.w, px + 8, py + 4);
+    ctx.globalAlpha = 1;
+  });
+}
+window.addEventListener('load', drawEmbed);
+window.addEventListener('resize', drawEmbed);
+
+/* ── ATTENTION DEMO ────────────────────────────────────── */
+const attnSentence = ["The","river","bank","was","steep"];
+const attnData = {
+  "The":   [0.10,0.15,0.20,0.30,0.25],
+  "river": [0.05,0.25,0.45,0.15,0.10],
+  "bank":  [0.08,0.38,0.12,0.22,0.20],
+  "was":   [0.12,0.18,0.28,0.20,0.22],
+  "steep": [0.10,0.20,0.32,0.18,0.20],
+};
+const attnInterps = {
+  "The":   "\"The\" distributes attention broadly, leaning on \"was\" to identify the predicate structure of the sentence.",
+  "river": "\"river\" attends strongly to \"bank\" — their co-occurrence signals that \"bank\" means a riverbank, not a financial institution.",
+  "bank":  "\"bank\" borrows most from \"river\" to disambiguate its meaning, then checks \"steep\" to understand how it's being described.",
+  "was":   "\"was\" is the main verb, so it attends across the whole sequence to understand its subject and complement.",
+  "steep": "\"steep\" looks back at \"bank\" and \"river\" to know exactly what it is modifying.",
+};
+
+let selectedTok = null;
+
+function buildAttnUI() {
+  const sentDiv = document.getElementById('attnSentence');
+  attnSentence.forEach(tok => {
+    const btn = document.createElement('button');
+    btn.className = 'attn-tok';
+    btn.textContent = tok;
+    btn.onclick = () => selectAttn(tok);
+    sentDiv.appendChild(btn);
+  });
+  const weightsDiv = document.getElementById('attnWeights');
+  attnSentence.forEach(tok => {
+    const row = document.createElement('div');
+    row.className = 'attn-row';
+    row.innerHTML = `<span class="attn-row-label">${tok}</span><div class="attn-bar-wrap"><div class="attn-bar" id="bar-${tok}" style="width:0%"></div></div><span class="attn-pct" id="pct-${tok}">–</span>`;
+    weightsDiv.appendChild(row);
+  });
+}
+
+function selectAttn(tok) {
+  selectedTok = tok;
+  document.querySelectorAll('.attn-tok').forEach(el => {
+    el.classList.remove('selected','lit');
+    if (el.textContent === tok) el.classList.add('selected');
+  });
+  const weights = attnData[tok];
+  attnSentence.forEach((t,i) => {
+    const pct = Math.round(weights[i] * 100);
+    document.getElementById('bar-' + t).style.width = pct + '%';
+    document.getElementById('pct-' + t).textContent = pct + '%';
+    const tokEl = document.querySelector(`.attn-tok:nth-child(${i+1})`);
+    if (t !== tok && pct >= 20) tokEl.classList.add('lit');
+  });
+  document.getElementById('attnInterp').textContent = attnInterps[tok];
+  drawArcs(tok, weights);
+}
+
+function drawArcs(activeTok, weights) {
+  const svg = document.getElementById('attnArcs');
+  const W = svg.clientWidth || 600;
+  const n = attnSentence.length;
+  const pad = 40;
+  const step = (W - pad*2) / (n-1);
+  const xs = attnSentence.map((_,i) => pad + i*step);
+  const yi = 80;
+  svg.innerHTML = '';
+
+  const fromIdx = attnSentence.indexOf(activeTok);
+  const maxW = Math.max(...weights);
+
+  attnSentence.forEach((t,i) => {
+    if (i === fromIdx) return;
+    const w = weights[i];
+    const opacity = 0.1 + (w/maxW)*0.9;
+    const sw = 0.5 + (w/maxW)*3;
+    const x1 = xs[fromIdx], x2 = xs[i];
+    const mid = (x1+x2)/2;
+    const dist = Math.abs(x2-x1);
+    const cy = yi - dist*0.55;
+    const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+    path.setAttribute('d',`M${x1} ${yi} Q${mid} ${cy} ${x2} ${yi}`);
+    path.setAttribute('fill','none');
+    path.setAttribute('stroke','#177bd6');
+    path.setAttribute('stroke-width', sw.toFixed(1));
+    path.setAttribute('opacity', opacity.toFixed(2));
+    svg.appendChild(path);
+  });
+
+  attnSentence.forEach((t,i) => {
+    const isActive = t === activeTok;
+    const c = document.createElementNS('http://www.w3.org/2000/svg','circle');
+    c.setAttribute('cx', xs[i]);
+    c.setAttribute('cy', yi);
+    c.setAttribute('r', isActive ? 8 : 5);
+    c.setAttribute('fill', isActive ? '#177bd6' : 'rgba(23,123,214,0.2)');
+    c.setAttribute('stroke', '#177bd6');
+    c.setAttribute('stroke-width','1');
+    svg.appendChild(c);
+  });
+}
+
+buildAttnUI();
+
+/* ── GENERATION DEMO ───────────────────────────────────── */
+const genTokens = [" the"," 2017"," paper",` "Attention`," Is"," All"," You"," Need"," —"," a"," landmark"," work"," that"," changed"," deep"," learning."];
+let genIdx = 0;
+let genTimer = null;
+const genOut = document.getElementById('genOutputText');
+
+function startGeneration() {
+  if (genTimer) return;
+  genTimer = setInterval(() => {
+    if (genIdx >= genTokens.length) { clearInterval(genTimer); genTimer = null; return; }
+    const span = document.createElement('span');
+    span.textContent = genTokens[genIdx];
+    span.style.animation = 'pop-in 0.2s ease both';
+    span.style.color = '#e98d37';
+    genOut.insertBefore(span, genOut.querySelector('.gen-cursor'));
+    genIdx++;
+  }, 280);
+}
+
+function resetGeneration() {
+  clearInterval(genTimer); genTimer = null; genIdx = 0;
+  genOut.innerHTML = '<span class="gen-cursor"></span>';
+}
+
+/* ── TRAINING LOOP ANIMATION ───────────────────────────── */
+let trainStep = 0;
+function animateTraining() {
+  for (let i = 0; i < 4; i++) {
+    document.getElementById('ts-' + i).classList.remove('active-step');
+  }
+  document.getElementById('ts-' + trainStep).classList.add('active-step');
+  trainStep = (trainStep + 1) % 4;
+}
+setInterval(animateTraining, 1200);
+
+/* ── LOSS CURVE ─────────────────────────────────────────── */
+function drawLoss() {
+  const svg = document.getElementById('lossSvg');
+  const W = 600, H = 120, padX = 30, padY = 16;
+  const pts = [];
+  for (let i = 0; i <= 60; i++) {
+    const x = padX + (i/60) * (W - padX*2);
+    const noise = (Math.random()-0.5)*4;
+    const val = 3.8 * Math.exp(-i/14) + 0.38 + noise * Math.exp(-i/20);
+    const y = padY + (1 - (val/4)) * (H - padY*2);
+    pts.push([x, Math.max(padY, Math.min(H-padY, y))]);
+  }
+  const d = pts.map((p,i) => (i===0?'M':'L') + p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ');
+  svg.innerHTML = `
+    <path d="${d}" fill="none" stroke="#177bd6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="${padX}" y="${H-4}" font-family="DM Mono,monospace" font-size="10" fill="rgba(112,112,160,0.7)">start</text>
+    <text x="${W-padX}" y="${H-4}" text-anchor="end" font-family="DM Mono,monospace" font-size="10" fill="rgba(112,112,160,0.7)">trained</text>
+    <text x="${padX-4}" y="${padY+4}" text-anchor="end" font-family="DM Mono,monospace" font-size="10" fill="rgba(112,112,160,0.7)">high</text>
+    <text x="${padX-4}" y="${H-padY}" text-anchor="end" font-family="DM Mono,monospace" font-size="10" fill="rgba(112,112,160,0.7)">low</text>
+  `;
+}
+window.addEventListener('load', drawLoss);
+</script>
+</body>
+</html>
