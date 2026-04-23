@@ -33,7 +33,7 @@ body {
   background: var(--bg);
   color: var(--text);
   font-family: 'Outfit', sans-serif;
-  font-size: 17px;
+  font-size: 16px;
   line-height: 1.7;
   overflow-x: hidden;
 }
@@ -43,7 +43,7 @@ h1, h2, h3 { font-family: 'DM Serif Display', serif; font-weight: 400; line-heig
 h1 { font-size: clamp(3rem, 8vw, 6.5rem); }
 h2 { font-size: clamp(2rem, 5vw, 3.5rem); }
 h3 { font-size: clamp(1.3rem, 3vw, 1.9rem); }
-code, .mono { font-family: 'DM Mono', monospace; font-size: 0.85em; }
+code, .mono { font-family: 'DM Mono', monospace; font-size: 1em; }
 
 p { color: var(--muted); max-width: 62ch; }
 p strong { color: var(--text); font-weight: 500; }
@@ -61,7 +61,7 @@ section {
 
 .section-label {
   font-family: 'DM Mono', monospace;
-  font-size: 0.75rem;
+  font-size: 1rem;
   letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--blue);
@@ -88,14 +88,14 @@ nav {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1.2rem clamp(1.5rem, 6vw, 7rem);
+  padding: 0.5rem clamp(1.5rem, 6vw, 7rem);
   background: rgba(6,6,14,0.85);
   backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--border);
 }
-.nav-logo { font-family: 'DM Serif Display', serif; font-size: 1.1rem; color: var(--text); }
+.nav-logo { font-family: 'DM Serif Display', serif; font-size: 2rem; color: var(--text); }
 .nav-links { display: flex; gap: 2rem; list-style: none; }
-.nav-links a { color: var(--muted); text-decoration: none; font-size: 0.85rem; font-family: 'DM Mono', monospace; transition: color 0.2s; }
+.nav-links a { color: var(--muted); text-decoration: none; font-size: 1rem; font-family: 'DM Mono', monospace; transition: color 0.2s; }
 .nav-links a:hover { color: var(--blue); }
 .nav-dot {
   width: 6px; height: 6px;
@@ -131,7 +131,7 @@ nav {
   border-radius: 99px;
   padding: 0.3rem 0.9rem;
   font-family: 'DM Mono', monospace;
-  font-size: 0.72rem;
+  font-size: 1rem;
   letter-spacing: 0.15em;
   color: var(--blue);
   margin-bottom: 1.5rem;
@@ -153,7 +153,7 @@ nav {
 
 .hero-subtitle {
   margin-top: 1.5rem;
-  font-size: 1.1rem;
+  font-size: 1rem;
   color: var(--muted);
   max-width: 50ch;
 }
@@ -168,7 +168,7 @@ nav {
   text-decoration: none;
   padding: 0.75rem 1.8rem;
   border-radius: 99px;
-  font-size: 0.9rem;
+  font-size: 1rem;
   font-weight: 500;
   transition: background 0.2s, transform 0.2s;
 }
@@ -206,7 +206,7 @@ nav {
   padding: 5px 12px;
   border-radius: 6px;
   font-family: 'DM Mono', monospace;
-  font-size: 0.78rem;
+  font-size: 1rem;
   border: 1px solid;
   transition: none;
 }
@@ -242,7 +242,7 @@ nav {
   padding: 0.65rem 1rem;
   color: var(--text);
   font-family: 'DM Mono', monospace;
-  font-size: 0.9rem;
+  font-size: 1rem;
   outline: none;
 }
 .token-input:focus { border-color: var(--blue); }
@@ -254,7 +254,7 @@ nav {
   border-radius: var(--r);
   padding: 0.65rem 1.2rem;
   cursor: pointer;
-  font-size: 0.85rem;
+  font-size: 1rem;
   font-family: 'Outfit', sans-serif;
   transition: background 0.2s;
 }
@@ -270,7 +270,7 @@ nav {
   padding: 4px 10px;
   border-radius: 6px;
   font-family: 'DM Mono', monospace;
-  font-size: 0.82rem;
+  font-size: 1rem;
   border: 1px solid;
   animation: pop-in 0.3s cubic-bezier(.34,1.56,.64,1) both;
 }
@@ -366,7 +366,7 @@ nav {
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  font-size: 0.8rem;
+  font-size: 1rem;
   font-family: 'DM Mono', monospace;
   color: var(--muted);
 }
@@ -408,12 +408,12 @@ nav {
 
 .arch-layer-title {
   font-family: 'DM Mono', monospace;
-  font-size: 0.82rem;
+  font-size: 1rem;
   font-weight: 500;
   color: var(--text);
 }
 .arch-layer-sub {
-  font-size: 0.78rem;
+  font-size: 1rem;
   color: var(--muted);
   margin-top: 0.2rem;
 }
@@ -439,7 +439,7 @@ nav {
   display: inline-block;
   margin-top: 0.4rem;
   font-family: 'DM Mono', monospace;
-  font-size: 0.7rem;
+  font-size: 1rem;
   color: var(--blue);
   border: 1px solid rgba(23,123,214,0.3);
   padding: 2px 8px;
@@ -457,7 +457,7 @@ nav {
   border: 1px solid var(--border);
   border-radius: var(--r);
   padding: 0.9rem 1rem;
-  font-size: 0.78rem;
+  font-size: 1rem;
   color: var(--muted);
   line-height: 1.6;
   z-index: 10;
@@ -484,7 +484,7 @@ nav {
   padding: 8px 16px;
   border-radius: 8px;
   font-family: 'DM Mono', monospace;
-  font-size: 0.9rem;
+  font-size: 1rem;
   border: 1px solid rgba(23,123,214,0.2);
   background: var(--surface2);
   color: var(--muted);
@@ -522,7 +522,7 @@ nav {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 0.82rem;
+  font-size: 1rem;
 }
 .attn-row-label {
   font-family: 'DM Mono', monospace;
@@ -545,7 +545,7 @@ nav {
 }
 .attn-pct {
   font-family: 'DM Mono', monospace;
-  font-size: 0.75rem;
+  font-size: 1rem;
   color: var(--muted);
   min-width: 36px;
   text-align: right;
@@ -557,7 +557,7 @@ nav {
   background: rgba(214,115,23,0.07);
   border: 1px solid rgba(214,115,23,0.2);
   border-radius: var(--r);
-  font-size: 0.9rem;
+  font-size: 1rem;
   color: #c9843a;
   line-height: 1.6;
   height: 72px;
@@ -581,14 +581,14 @@ nav {
 }
 .gen-prompt-label {
   font-family: 'DM Mono', monospace;
-  font-size: 0.7rem;
+  font-size: 1rem;
   letter-spacing: 0.15em;
   color: var(--blue);
   margin-bottom: 0.4rem;
 }
 .gen-prompt-text {
   font-family: 'DM Mono', monospace;
-  font-size: 0.9rem;
+  font-size: 1rem;
   color: var(--text);
 }
 
@@ -602,14 +602,14 @@ nav {
 }
 .gen-output-label {
   font-family: 'DM Mono', monospace;
-  font-size: 0.7rem;
+  font-size: 1rem;
   letter-spacing: 0.15em;
   color: var(--orange);
   margin-bottom: 0.4rem;
 }
 .gen-output-text {
   font-family: 'DM Mono', monospace;
-  font-size: 0.9rem;
+  font-size: 1rem;
   color: var(--text);
   min-height: 1.4em;
 }
@@ -637,7 +637,7 @@ nav {
   background: transparent;
   color: var(--blue);
   font-family: 'Outfit', sans-serif;
-  font-size: 0.85rem;
+  font-size: 1rem;
   cursor: pointer;
   transition: background 0.2s, color 0.2s;
 }
@@ -647,7 +647,7 @@ nav {
 
 .gen-speed-label {
   font-family: 'DM Mono', monospace;
-  font-size: 0.75rem;
+  font-size: 1rem;
   color: var(--muted);
 }
 
@@ -676,18 +676,18 @@ nav {
 }
 .train-step-num {
   font-family: 'DM Mono', monospace;
-  font-size: 0.7rem;
+  font-size: 1rem;
   color: var(--blue);
   margin-bottom: 0.3rem;
 }
 .train-step-title {
   font-weight: 500;
-  font-size: 0.95rem;
+  font-size: 1rem;
   color: var(--text);
   margin-bottom: 0.3rem;
 }
 .train-step-desc {
-  font-size: 0.92rem;
+  font-size: 1rem;
   color: var(--muted);
   line-height: 1.55;
 }
@@ -701,7 +701,7 @@ nav {
 }
 .loss-chart-label {
   font-family: 'DM Mono', monospace;
-  font-size: 0.72rem;
+  font-size: 1rem;
   color: var(--muted);
   margin-bottom: 0.8rem;
   letter-spacing: 0.1em;
@@ -738,7 +738,7 @@ nav {
   align-items: center;
   justify-content: center;
   font-family: 'DM Mono', monospace;
-  font-size: 0.75rem;
+  font-size: 1rem;
   color: var(--blue);
   flex-shrink: 0;
 }
@@ -746,13 +746,13 @@ nav {
 .qkv-step-content {}
 .qkv-step-title {
   font-weight: 500;
-  font-size: 0.9rem;
+  font-size: 1rem;
   color: var(--text);
   margin-bottom: 0.3rem;
 }
 .qkv-step-formula {
   font-family: 'DM Mono', monospace;
-  font-size: 0.82rem;
+  font-size: 1rem;
   color: var(--cyan);
   background: rgba(23,214,210,0.06);
   padding: 3px 8px;
@@ -760,7 +760,7 @@ nav {
   display: inline-block;
   margin-bottom: 0.4rem;
 }
-.qkv-step-desc { font-size: 0.92rem; color: var(--muted); line-height: 1.55; }
+.qkv-step-desc { font-size: 1rem; color: var(--muted); line-height: 1.55; }
 
 /* ── SECTION 8: RLHF ────────────────────────────────────── */
 #rlhf { background: var(--bg); }
@@ -783,8 +783,8 @@ nav {
 .rlhf-node.n-cyan   { background:rgba(23,214,210,0.07); border-color:rgba(23,214,210,0.3); }
 .rlhf-node.n-yellow  { background:rgba(233,141,55,0.08); border-color:rgba(233,141,55,0.3); }
 
-.rlhf-title { font-family:'DM Mono',monospace; font-size:0.82rem; font-weight:500; color:var(--text); }
-.rlhf-desc  { font-size:0.9rem; color:var(--muted); margin-top:0.3rem; line-height:1.5; }
+.rlhf-title { font-family:'DM Mono',monospace; font-size:1rem; font-weight:500; color:var(--text); }
+.rlhf-desc  { font-size:1rem; color:var(--muted); margin-top:0.3rem; line-height:1.5; }
 
 .rlhf-arrow {
   align-self: center;
@@ -809,7 +809,7 @@ footer {
   padding: 3rem clamp(1.5rem, 6vw, 7rem);
   text-align: center;
   font-family: 'DM Mono', monospace;
-  font-size: 0.78rem;
+  font-size: 1rem;
   color: var(--muted);
 }
 footer span { color: var(--blue); }
@@ -829,7 +829,7 @@ footer span { color: var(--blue); }
   .hero-visual { display: none; }
   .training-loop { grid-template-columns: 1fr; }
   .arch-tooltip { display: none !important; }
-  .arch-repeat-badge { right: -70px; font-size: 0.62rem; }
+  .arch-repeat-badge { right: -70px; font-size: 1rem; }
 }
 </style>
 </head>
@@ -1553,7 +1553,7 @@ window.addEventListener('load', drawLoss);
     words.forEach(w=>{
       ctx.save();
       ctx.globalAlpha=w.alpha;
-      ctx.font='500 13px "DM Mono", monospace';
+      ctx.font='500 16px "DM Mono", monospace';
       ctx.fillStyle=lerpColor(GREY,CAT_COLORS[w.cat],w.colorT);
       ctx.fillText(w.label,w.x,w.y);
       ctx.restore();
