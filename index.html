@@ -853,6 +853,13 @@ footer span { color: var(--blue); }
   opacity: 0.12;
 }
 
+.footer-copyright {
+    margin-top: var(--spacing-xs);
+    font-size: 0.8rem !important;
+    opacity: 0.7;
+    text-align: center;
+}
+
 /* ── RESPONSIVE ─────────────────────────────────────────── */
 @media (max-width: 768px) {
     .hero-grid { grid-template-columns: 1fr; }
@@ -1061,28 +1068,28 @@ footer span { color: var(--blue); }
   <div class="glow-orb" style="width:500px;height:500px;background:var(--indigo);bottom:-100px;left:-100px;"></div>
   <div class="section-label reveal">06 - Training</div>
   <h2 class="reveal reveal-delay-1">Learning from<br><em style="color:var(--indigo);font-style:italic">prediction error</em></h2>
-  <p class="reveal reveal-delay-2" style="margin-top:1rem">The model trains by repeatedly predicting the next token, measuring how wrong it was, and nudging billions of weights to do better. This loop runs across trillions of tokens.</p>
+  <p class="reveal reveal-delay-2" style="margin-top:1rem">The model learns entirely by trying to predict the next token, checking how wrong the prediction was, and adjusting. This loop runs billions of times across trillions of tokens, and from it emerges language understanding.</p>
 
   <div class="training-loop reveal reveal-delay-3">
     <div class="train-step" id="ts-0">
       <div class="train-step-num">01</div>
       <div class="train-step-title">Forward pass</div>
-      <div class="train-step-desc">Input runs through every layer. Each token gets a probability distribution over the vocabulary.</div>
+      <div class="train-step-desc">The input runs through every layer from embedding to output. The model produces a probability for every word in the vocabulary as the predicted next token.</div>
     </div>
     <div class="train-step" id="ts-1">
       <div class="train-step-num">02</div>
       <div class="train-step-title">Loss calculation</div>
-      <div class="train-step-desc">Cross-entropy loss measures how low a probability was assigned to the actual next token.</div>
+      <div class="train-step-desc">The model checks what the actual next token was and measures how low a probability it assigned to it. The bigger the miss, the higher the score (called the loss) which in turn dictates how aggressively the weights are corrected.</div>
     </div>
     <div class="train-step" id="ts-2">
       <div class="train-step-num">03</div>
       <div class="train-step-title">Backpropagation</div>
-      <div class="train-step-desc">The chain rule computes each weight's contribution to the error - billions of gradients.</div>
+      <div class="train-step-desc">Working backwards through every layer of the processing network, the model calculates how much each individual weight contributed to the error. This produces billions of gradients (one per weight), which indicate the direction and magnitude of the necessary adjustments.</div>
     </div>
     <div class="train-step" id="ts-3">
       <div class="train-step-num">04</div>
       <div class="train-step-title">Weight update</div>
-      <div class="train-step-desc">Adam optimizer adjusts every weight slightly in the direction that reduces loss.</div>
+      <div class="train-step-desc">Each weight is nudged slightly in the direction that would have reduced the loss. The Adam optimizer, a sophisticated algorithm, handles this efficiently, and the cycle begins again on the next token, starting back on the new, updated input.</div>
     </div>
     <div class="loss-chart-wrap">
       <div class="loss-chart-label">TRAINING LOSS OVER TIME</div>
@@ -1104,7 +1111,15 @@ footer span { color: var(--blue); }
       <div class="qkv-step-content">
         <div class="qkv-step-title">Produce Q, K, V</div>
         <div class="qkv-step-formula">Q = x·Wq &nbsp; K = x·Wk &nbsp; V = x·Wv</div>
-        <div class="qkv-step-desc">Each token's embedding x is multiplied by three separate learned matrices. Q asks "what am I looking for?", K says "what do I offer?", V says "here's what I'll contribute."</div>
+        <div class="qkv-step-desc">
+            Each token's embedding x is multiplied by three separate learned weight matrices, producing three vectors:
+            <br><br>
+            <strong style="color:var(--text)">Q — Query:</strong> <span style="color:var(--muted)">"What am I looking for?" Each token uses its Q to search for relevant information in other tokens.</span>
+            <br><br>
+            <strong style="color:var(--text)">K — Key:</strong> <span style="color:var(--muted)">"What do I offer?" Each token broadcasts its K so others can decide how relevant it is to their query.</span>
+            <br><br>
+            <strong style="color:var(--text)">V — Value:</strong> <span style="color:var(--muted)">"Here's what I'll contribute." If a token is deemed relevant, its V is what actually gets passed along.</span>
+        </div>
       </div>
     </div>
     <div class="qkv-step">
@@ -1112,7 +1127,7 @@ footer span { color: var(--blue); }
       <div class="qkv-step-content">
         <div class="qkv-step-title">Compute attention scores</div>
         <div class="qkv-step-formula">score(i,j) = Qᵢ · Kⱼ / √d</div>
-        <div class="qkv-step-desc">The dot product of token i's Query with token j's Key gives a raw score. Dividing by √d (dimension) keeps gradients stable.</div>
+        <div class="qkv-step-desc">Every token's Q is compared against every other token's K using a dot product, which essentially measures how well they match. The result is a raw score representing how much attention token i should pay to token j. Dividing by √d ((dimension)the size of the vectors) prevents the scores from getting so large that the math becomes unstable during training.</div>
       </div>
     </div>
     <div class="qkv-step">
@@ -1120,7 +1135,7 @@ footer span { color: var(--blue); }
       <div class="qkv-step-content">
         <div class="qkv-step-title">Normalize with softmax</div>
         <div class="qkv-step-formula">αᵢⱼ = softmax(scoreᵢⱼ)</div>
-        <div class="qkv-step-desc">Softmax turns the raw scores into weights that sum to 1 - a probability distribution over how much to attend to each token.</div>
+        <div class="qkv-step-desc">The raw scores are run through an activation function called softmax. An activation function is a mathematical function that maps the input values to a range between 0 and 1. This turns "token j scored higher than token k" into a concrete percentage, indicating how much of its attention token i should direct at each other token.</div>
       </div>
     </div>
     <div class="qkv-step">
@@ -1128,7 +1143,7 @@ footer span { color: var(--blue); }
       <div class="qkv-step-content">
         <div class="qkv-step-title">Weighted sum of Values</div>
         <div class="qkv-step-formula">outputᵢ = Σⱼ αᵢⱼ · Vⱼ</div>
-        <div class="qkv-step-desc">The output for token i is a blend of every token's V, weighted by the attention scores. "bank" borrows heavily from "river" - its output vector is now contextually disambiguated.</div>
+        <div class="qkv-step-desc">Each token's final output is a weighted blend of every other token's V. Tokens that scored high in the attention step contribute more. "bank" borrows heavily from "river", so its output vector now carries the meaning of a riverbank rather than a financial institution. This is how context collapses into meaning.</div>
       </div>
     </div>
   </div>
@@ -1139,7 +1154,7 @@ footer span { color: var(--blue); }
   <div class="glow-orb" style="width:450px;height:450px;background:var(--orange);top:-100px;left:-100px;opacity:0.08;"></div>
   <div class="section-label reveal">08 - RLHF</div>
   <h2 class="reveal reveal-delay-1">Making it<br><em style="color:var(--yellow);font-style:italic">helpful</em></h2>
-  <p class="reveal reveal-delay-2" style="margin-top:1rem">A pretrained model is good at predicting text, not following instructions. Reinforcement Learning from Human Feedback fine-tunes it to be genuinely useful - helpful, honest, and safe.</p>
+  <p class="reveal reveal-delay-2" style="margin-top:1rem">A pretrained model is good at predicting text, not following instructions. Reinforcement Learning from Human Feedback fine-tunes it to be genuinely useful, helpful, honest, and safe.</p>
 
   <div class="rlhf-flow reveal reveal-delay-3">
     <div class="rlhf-node n-blue">
@@ -1159,7 +1174,7 @@ footer span { color: var(--blue); }
     <div class="rlhf-arrow"></div>
     <div class="rlhf-node n-yellow">
       <div class="rlhf-title">RL fine-tuning (PPO)</div>
-      <div class="rlhf-desc">The policy model is updated to maximize the reward signal - outputs humans prefer score higher.</div>
+      <div class="rlhf-desc">The policy model is updated to maximize the reward signal, with outputs humans prefer scoring higher.</div>
     </div>
     <div class="rlhf-arrow"></div>
     <div class="rlhf-node n-blue">
@@ -1170,7 +1185,8 @@ footer span { color: var(--blue); }
 </section>
 
 <footer>
-  Built to explain <span>large language models</span> - one scroll at a time.
+  Built to explain <span>large language models</span> - one scroll at a time. Designed & built by <a href="https://elijaholson.net/" target="_blank" style="color:#c44eb3;text-decoration:underline;">Elijah Olson</a>.
+  <p class="footer-copyright" style="max-width:none;margin-top:0.5rem;">&copy; 2026 All rights reserved.</p>
 </footer>
 
 <script>
